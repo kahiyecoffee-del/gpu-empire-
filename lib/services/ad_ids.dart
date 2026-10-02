@@ -10,7 +10,7 @@ abstract final class AdIds {
   static const _production = bool.fromEnvironment('PRODUCTION_ADS');
 
   // Real ids (filled in from the AdMob console before release).
-  static const _rewardedAndroid = '';
+  static const _rewardedAndroid = 'ca-app-pub-4694724768236037/6135882052';
   static const _interstitialAndroid = '';
   static const _rewardedIos = '';
   static const _interstitialIos = '';

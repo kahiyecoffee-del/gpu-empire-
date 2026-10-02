@@ -97,7 +97,8 @@ jobs:
     env:
       KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      ADMOB_APP_ID: ${{ vars.ADMOB_APP_ID }}
+      # Real AdMob app id (not a secret); test builds use the test id.
+      ADMOB_APP_ID: ca-app-pub-4694724768236037~9340629899
     steps:
       - name: Check signing secrets
         id: secrets
