@@ -247,5 +247,7 @@
   "tutorialSkip": "Saltar",
   "settingsSfx": "Efectos de sonido",
   "settingsSfxHint": "Toques, compras y recompensas",
-  "devAnalytics": "Registro de analítica"
+  "devAnalytics": "Registro de analítica",
+  "settingsLanguage": "Idioma",
+  "languageAutomatic": "Automático (dispositivo)"
 }
