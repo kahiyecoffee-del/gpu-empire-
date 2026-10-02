@@ -158,8 +158,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     return const _BuildLabel();
                   },
                 ),
-                const Positioned(right: 12, bottom: 16, child: EventBubble()),
-                const Positioned(left: 12, bottom: 16, child: _SideButtons()),
+                // Directional, so right-to-left languages mirror them too.
+                const PositionedDirectional(
+                  end: 12,
+                  bottom: 16,
+                  child: EventBubble(),
+                ),
+                const PositionedDirectional(
+                  start: 12,
+                  bottom: 16,
+                  child: _SideButtons(),
+                ),
               ],
             ),
           ),

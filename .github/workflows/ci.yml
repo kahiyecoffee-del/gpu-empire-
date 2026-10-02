@@ -26,6 +26,7 @@ jobs:
       - run: flutter pub get
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
+      - run: python3 tool/l10n/check_arb.py lib/l10n/app_*.arb
       - run: flutter analyze
       - run: flutter test
 

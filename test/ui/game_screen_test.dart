@@ -193,4 +193,26 @@ void main() {
     await tester.pump();
     expect(container.read(settingsProvider).tutorialDone, isTrue);
   });
+
+  testWidgets('a language picked in settings is used right away', (
+    tester,
+  ) async {
+    final container = await pumpGame(tester);
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('settings_language')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('language_de')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('language_de')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(container.read(settingsProvider).language, 'de');
+    expect(find.text('Sprache'), findsOneWidget);
+  });
 }
