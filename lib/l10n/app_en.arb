@@ -1,0 +1,20 @@
+{
+  "@@locale": "en",
+  "appTitle": "GPU Empire",
+  "@appTitle": {
+    "description": "Game title shown in the app bar and task switcher."
+  },
+  "homeTagline": "From one GPU in a garage to the world's largest AI infrastructure.",
+  "@homeTagline": {
+    "description": "Placeholder tagline on the home screen during setup."
+  },
+  "buildInfo": "Build {version}",
+  "@buildInfo": {
+    "description": "Small label showing the app version.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
+}

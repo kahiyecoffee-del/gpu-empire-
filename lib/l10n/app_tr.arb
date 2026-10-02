@@ -1,0 +1,6 @@
+{
+  "@@locale": "tr",
+  "appTitle": "GPU İmparatorluğu",
+  "homeTagline": "Garajdaki tek bir GPU'dan dünyanın en büyük yapay zeka altyapısına.",
+  "buildInfo": "Sürüm {version}"
+}
