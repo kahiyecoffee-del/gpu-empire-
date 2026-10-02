@@ -45,7 +45,7 @@ jobs:
         run: >
           flutter build web --release --no-web-resources-cdn
           --base-href "/${{ github.event.repository.name }}/"
-          --dart-define=BUILD_ID=${GITHUB_SHA::7}
+          --dart-define=BUILD_ID=${GITHUB_SHA::7} --dart-define=DEV_MENU=true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
@@ -81,7 +81,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build apk --release --dart-define=BUILD_ID=${GITHUB_SHA::7}
+      - run: flutter build apk --release --dart-define=BUILD_ID=${GITHUB_SHA::7} --dart-define=DEV_MENU=true
       - uses: actions/upload-artifact@v4
         with:
           name: gpu-empire-apk

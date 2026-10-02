@@ -4,10 +4,6 @@
   "@appTitle": {
     "description": "Game title shown in the app bar and task switcher."
   },
-  "homeTagline": "From one GPU in a garage to the world's largest AI infrastructure.",
-  "@homeTagline": {
-    "description": "Placeholder tagline on the home screen during setup."
-  },
   "buildInfo": "Build {version}",
   "@buildInfo": {
     "description": "Small label showing the app version.",
@@ -16,5 +12,263 @@
         "type": "String"
       }
     }
+  },
+  "lineLegacyGpu": "Old GPU",
+  "@lineLegacyGpu": {
+    "description": "Name of a production line."
+  },
+  "lineGamingCluster": "Gaming GPU Cluster",
+  "@lineGamingCluster": {
+    "description": "Name of a production line."
+  },
+  "lineDatacenterGpu": "Data Center GPU",
+  "@lineDatacenterGpu": {
+    "description": "Name of a production line."
+  },
+  "lineTpuPod": "TPU Pod",
+  "@lineTpuPod": {
+    "description": "Name of a production line."
+  },
+  "lineSupercomputer": "Supercomputer",
+  "@lineSupercomputer": {
+    "description": "Name of a production line."
+  },
+  "lineQuantum": "Quantum Accelerator",
+  "@lineQuantum": {
+    "description": "Name of a production line."
+  },
+  "managerIntern": "Intern",
+  "@managerIntern": {
+    "description": "Name of a manager who automates a line."
+  },
+  "managerSysadmin": "Sysadmin",
+  "@managerSysadmin": {
+    "description": "Name of a manager who automates a line."
+  },
+  "cashPerSecond": "{amount}/s",
+  "@cashPerSecond": {
+    "description": "Passive income rate under the cash counter.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tapToRun": "Tap a rack to run a job",
+  "@tapToRun": {
+    "description": "Hint shown while no line runs on its own."
+  },
+  "levelShort": "Lv {level}",
+  "@levelShort": {
+    "description": "Line level badge.",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "perJob": "{amount} per job",
+  "@perJob": {
+    "description": "Income of one completed job.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buyButton": "Buy ×{count}",
+  "@buyButton": {
+    "description": "Buy button label with quantity.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "unlockButton": "Unlock",
+  "@unlockButton": {
+    "description": "Button that buys the first rack of a locked line."
+  },
+  "lockedLine": "Locked",
+  "@lockedLine": {
+    "description": "Label on lines that cannot be bought yet."
+  },
+  "hireManager": "Hire {name}",
+  "@hireManager": {
+    "description": "Button that hires a manager for a line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "managerWorking": "{name} keeps it running",
+  "@managerWorking": {
+    "description": "Shown on lines that run on their own.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nextMilestone": "Lv {level}: income ×{multiplier}",
+  "@nextMilestone": {
+    "description": "Next milestone of a line.",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      },
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneReached": "{line}: income ×{multiplier}!",
+  "@milestoneReached": {
+    "description": "Celebration when a line reaches a milestone.",
+    "placeholders": {
+      "line": {
+        "type": "String"
+      },
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "buyModeMax": "MAX",
+  "@buyModeMax": {
+    "description": "Buy-mode toggle option that buys as many as affordable."
+  },
+  "power": "Power",
+  "@power": {
+    "description": "Power capacity resource."
+  },
+  "cooling": "Cooling",
+  "@cooling": {
+    "description": "Cooling capacity resource."
+  },
+  "capacityUsage": "{used} / {capacity}",
+  "@capacityUsage": {
+    "description": "Resource usage versus capacity.",
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "capacity": {
+        "type": "String"
+      }
+    }
+  },
+  "upgradeInfra": "Upgrade",
+  "@upgradeInfra": {
+    "description": "Button that raises power or cooling capacity."
+  },
+  "throttled": "Overloaded! Running at {percent}% speed",
+  "@throttled": {
+    "description": "Warning shown while the soft throttle slows production.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "upgrades": "Upgrades",
+  "@upgrades": {
+    "description": "Title of the upgrades panel and its button."
+  },
+  "upgradeLine": "{line} income ×{multiplier}",
+  "@upgradeLine": {
+    "description": "Upgrade that multiplies one line.",
+    "placeholders": {
+      "line": {
+        "type": "String"
+      },
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "upgradeAll": "All lines income ×{multiplier}",
+  "@upgradeAll": {
+    "description": "Upgrade that multiplies every line.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "noUpgrades": "No upgrades available right now.",
+  "@noUpgrades": {
+    "description": "Empty state of the upgrades panel."
+  },
+  "buy": "Buy",
+  "@buy": {
+    "description": "Generic buy button."
+  },
+  "offlineTitle": "Welcome back!",
+  "@offlineTitle": {
+    "description": "Title of the offline earnings dialog."
+  },
+  "offlineBody": "Your data centers earned {amount} while you were away ({duration}).",
+  "@offlineBody": {
+    "description": "Body of the offline earnings dialog.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineCapped": "Offline earnings are capped at {duration}.",
+  "@offlineCapped": {
+    "description": "Note shown when the offline cap was hit.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "collect": "Collect",
+  "@collect": {
+    "description": "Button that closes the offline earnings dialog."
+  },
+  "devMenu": "Developer menu",
+  "@devMenu": {
+    "description": "Title of the hidden test menu."
+  },
+  "devTimeScale": "Time ×10",
+  "@devTimeScale": {
+    "description": "Dev toggle that speeds up time."
+  },
+  "devAddCash": "Add {amount}",
+  "@devAddCash": {
+    "description": "Dev button that adds cash.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "devMultiplyCash": "Cash ×10",
+  "@devMultiplyCash": {
+    "description": "Dev button that multiplies cash."
+  },
+  "devReset": "Reset save",
+  "@devReset": {
+    "description": "Dev button that deletes progress."
+  },
+  "devResetConfirm": "Delete all progress?",
+  "@devResetConfirm": {
+    "description": "Confirmation for resetting the save."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button."
+  },
+  "confirm": "Delete",
+  "@confirm": {
+    "description": "Confirm button for destructive actions."
   }
 }

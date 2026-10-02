@@ -120,6 +120,12 @@ Firebase Analytics + Remote Config. Olaylar: oturum, hat açılması, yükseltme
 | 2026-10-02 | Elektrik & soğutma | **Yumuşak throttle:** `verim = min(1, kapasite/talep)` (her iki kaynak için, düşük olanı geçerli). Altyapı yükseltmeleri $ ile alınır. |
 | 2026-10-02 | Kayıt | JSON, `shared_preferences` içinde (Android + web aynı kod). Sürüm + migrasyon. |
 | 2026-10-02 | Görsel | Yandan görünüm raflar, kodla çizim (CustomPainter). Flame şimdilik yok. |
+| 2026-10-02 | Gelir yükseltmeleri | Aşama 1'e para ile alınan tek seferlik **gelir yükseltmeleri** eklendi (bir hat ×3 veya tüm hatlar ×3). Simülatör, bunlar olmadan 15. dakikadan sonra 6–25 dk'lık ölü süreler gösterdi. |
+| 2026-10-02 | Elektrik/soğutma modeli | Rafın çektiği güç, rafın açılış fiyatıyla orantılı (×0.25 kW/$, soğutma ×0.2). Altyapı seviyesi kapasiteyi ve fiyatı aynı oranda (×1.5) büyütür, yani kW başı fiyat sabit. Her yeni hat açılışında elektrik kararı önem kazanır, hat büyüdükçe azalır. |
+| 2026-10-02 | Kilometre taşları | 25, 50, 75, 100, 150, 200, 250, 300, 400, 500. seviyelerde ×2. |
+| 2026-10-02 | "Yapacak bir şey yok" ölçütü | Simülatörde: geliri en az %1 artıracak, alınabilir hiçbir şey olmaması. Hedef ≤ 3 dk; CI'daki tempo testi ilk 30 dakika için bunu zorunlu kılar. |
+| 2026-10-02 | Geliştirici menüsü | Sürüm etiketine 5 dokunuş: zaman ×10, +$1M, para ×10, kaydı sıfırla. Debug ve CI test derlemelerinde açık (`DEV_MENU=true`), mağaza sürümünde kapalı olacak. |
+| 2026-10-02 | İkonlar | Web'de emoji fontu indirme gerektirdiği için arayüzde emoji yerine Material ikonları kullanılır. |
 
 ---
 

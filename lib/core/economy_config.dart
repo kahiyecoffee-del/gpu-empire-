@@ -13,6 +13,7 @@ class EconomyConfig {
     required this.power,
     required this.cooling,
     required this.offlineMaxSeconds,
+    required this.offlineMinReportSeconds,
     required this.prestige,
   });
 
@@ -31,6 +32,9 @@ class EconomyConfig {
       power: InfraConfig.fromJson(_map(infra['power'])),
       cooling: InfraConfig.fromJson(_map(infra['cooling'])),
       offlineMaxSeconds: _num(_map(json['offline'])['maxSeconds']).toDouble(),
+      offlineMinReportSeconds: _num(
+        _map(json['offline'])['minReportSeconds'] ?? 0,
+      ).toDouble(),
       prestige: PrestigeConfig.fromJson(_map(json['prestige'])),
     );
   }
@@ -52,6 +56,9 @@ class EconomyConfig {
 
   /// Cap on how much time offline earnings are paid for.
   final double offlineMaxSeconds;
+
+  /// Shorter absences are paid silently, without the welcome-back dialog.
+  final double offlineMinReportSeconds;
   final PrestigeConfig prestige;
 
   int lineIndex(String lineId) {

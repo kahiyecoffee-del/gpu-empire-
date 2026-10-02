@@ -46,6 +46,19 @@ String formatBig(BigNumber value) {
 /// Formats a plain double with the same rules as [formatBig].
 String formatDouble(double value) => formatBig(BigNumber.from(value));
 
+const _powerUnits = ['kW', 'MW', 'GW', 'TW', 'PW'];
+
+/// Formats a power value given in kW: `850 kW`, `1.20 MW`, `45.6 GW`.
+String formatPower(double kW) {
+  var value = kW;
+  var unit = 0;
+  while (value >= 1000 && unit < _powerUnits.length - 1) {
+    value /= 1000;
+    unit++;
+  }
+  return '${formatDouble(value)} ${_powerUnits[unit]}';
+}
+
 /// Formats a duration in seconds as `45s`, `3m 05s` or `2h 14m`.
 String formatDuration(double seconds) {
   final total = seconds.floor();

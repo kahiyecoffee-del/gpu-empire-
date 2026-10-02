@@ -52,6 +52,14 @@ void main() {
     });
   });
 
+  group('formatPower', () {
+    test('scales kW to larger units', () {
+      expect(formatPower(850), '850 kW');
+      expect(formatPower(1200), '1.2 MW');
+      expect(formatPower(45.6e6), '45.6 GW');
+    });
+  });
+
   group('formatDuration', () {
     test('formats seconds, minutes and hours', () {
       expect(formatDuration(7.9), '7s');

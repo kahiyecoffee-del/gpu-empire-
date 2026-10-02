@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'game/session.dart';
 import 'l10n/app_localizations.dart';
-import 'ui/home_screen.dart';
+import 'ui/game_loop.dart';
+import 'ui/game_screen.dart';
 import 'ui/theme.dart';
 
 class GpuEmpireApp extends StatelessWidget {
@@ -15,7 +17,7 @@ class GpuEmpireApp extends StatelessWidget {
       theme: buildAppTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const HomeScreen(),
+      home: const GameSession(child: GameLoop(child: GameScreen())),
     );
   }
 }
