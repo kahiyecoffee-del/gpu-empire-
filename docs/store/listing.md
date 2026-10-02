@@ -7,6 +7,8 @@ Assets in this folder:
 
 Category: **Games › Simulation**. Tags: Idle, Tycoon, Business, Casual.
 Contains ads: **Yes**. In-app purchases: **Yes**.
+Privacy policy: https://kahiyecoffee-del.github.io/gpu-empire-/privacy.html
+Contact email: eraysozer@gmail.com
 
 ## English (default)
 
