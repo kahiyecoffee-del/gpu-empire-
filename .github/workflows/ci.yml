@@ -140,6 +140,10 @@ jobs:
           --build-number=$((100 + ${{ github.run_number }}))
           --dart-define=BUILD_ID=${GITHUB_SHA::7}
           --dart-define=PRODUCTION_ADS=true
+      - name: Show signing certificate
+        if: steps.secrets.outputs.ready == 'true'
+        # The fingerprint must match the upload key registered in Play.
+        run: keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab | grep -E "Owner|SHA1|SHA256"
       - name: Remove signing files
         if: always()
         run: rm -f android/app/upload-keystore.jks android/key.properties
