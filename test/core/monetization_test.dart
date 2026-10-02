@@ -86,6 +86,48 @@ void main() {
     expect(engine.applyTurbo(strong).boost!.multiplier, 10);
   });
 
+  test('boosts merge instead of cancelling each other', () {
+    final turbo = engine.applyTurbo(running()); // x5 for 120 s
+    final event = config.events.list.firstWhere(
+      (e) => e.kind == EventKind.boost && e.value < m.turboMultiplier,
+    );
+    final both = engine.applyEvent(turbo, event);
+    expect(both.boost!.multiplier, m.turboMultiplier);
+    final extra = (event.value - 1) * event.seconds / (m.turboMultiplier - 1);
+    expect(both.boost!.secondsLeft, closeTo(120 + extra, 1e-9));
+    // A weaker wheel prize during turbo is not wasted either.
+    final prize = engine.applyBoost(turbo, 3, 60);
+    expect(prize.boost!.secondsLeft, closeTo(120 + 2 * 60 / 4, 1e-9));
+  });
+
+  test('time warp counts as lifetime earnings', () {
+    final s = running().copyWith(meta: const MetaState(tokens: 25));
+    final after = engine.timeWarp(s, m.timeWarps.first)!;
+    expect(after.meta.lifetimeEarned > s.meta.lifetimeEarned, isTrue);
+    expect(after.meta.tokens, 5);
+  });
+
+  test('a clock set ahead once cannot lock the wheel for long', () {
+    final future = running().copyWith(
+      meta: const MetaState(lastFreeSpinMs: 1 << 50),
+    );
+    expect(engine.secondsToFreeSpin(future, 0), m.wheel.freeEverySeconds);
+  });
+
+  test('one-time products are remembered by id', () {
+    const pack = ProductConfig(
+      id: 'tokens_once',
+      kind: ProductKind.nonConsumable,
+      fallbackPrice: r'$1',
+      tokens: 50,
+    );
+    var s = engine.deliverProduct(running(), pack);
+    expect(s.meta.tokens, 50);
+    expect(engine.ownsProduct(s, pack), isTrue);
+    s = engine.deliverProduct(s, pack); // Restored: nothing more.
+    expect(s.meta.tokens, 50);
+  });
+
   test('time warp pays steady income for tokens', () {
     final s = running().copyWith(meta: const MetaState(tokens: 25));
     final warp = m.timeWarps.first;

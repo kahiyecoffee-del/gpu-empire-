@@ -31,9 +31,9 @@ class MockAdService implements AdService {
   }
 
   @override
-  Future<void> showInterstitial() async {
+  Future<bool> showInterstitial() async {
     final context = navigatorKey.currentContext;
-    if (context == null) return;
+    if (context == null) return false;
     await Navigator.of(context).push<bool>(
       PageRouteBuilder(
         opaque: true,
@@ -41,6 +41,7 @@ class MockAdService implements AdService {
             _FakeAd(seconds: seconds, rewarded: false, label: 'interstitial'),
       ),
     );
+    return true;
   }
 
   @override

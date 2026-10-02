@@ -33,7 +33,7 @@ class IconText extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: const EdgeInsets.only(right: 4),
+              padding: const EdgeInsetsDirectional.only(end: 4),
               child: Icon(
                 icon,
                 size: (effective.fontSize ?? 14) * 1.2,

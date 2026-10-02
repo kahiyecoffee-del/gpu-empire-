@@ -244,7 +244,10 @@ class ContractBook extends _QuestRules {
       );
     }
     // Earnings contract: double what this location has earned.
-    final goal = (s.locationEarned.scale(2)).max(BigNumber.from(1000));
+    // Capped so the stored double stays finite (JSON cannot hold Infinity).
+    final goal = (s.locationEarned.scale(2))
+        .max(BigNumber.from(1000))
+        .min(BigNumber.from(1e300));
     return QuestConfig(
       id: id,
       type: QuestType.locationEarned,

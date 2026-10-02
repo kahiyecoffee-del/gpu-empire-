@@ -6,6 +6,7 @@ import '../../game/monetization.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ad_service.dart';
 import 'chunky_button.dart';
+import 'toast.dart';
 
 /// Plays a rewarded ad and says so when none could be shown.
 Future<bool> watchAd(
@@ -13,16 +14,16 @@ Future<bool> watchAd(
   WidgetRef ref,
   AdPlacement placement,
 ) async {
-  final messenger = ScaffoldMessenger.maybeOf(context);
   final message = AppLocalizations.of(context).adUnavailable;
   final ok = await ref.read(adsProvider).watch(placement);
-  if (!ok) messenger?.showSnackBar(SnackBar(content: Text(message)));
+  if (!ok && context.mounted) showToast(context, message);
   return ok;
 }
 
 /// A button that plays a rewarded ad, then runs [onReward]. With "Remove
-/// ads" bought it shows a gift icon and rewards right away.
-class AdButton extends ConsumerWidget {
+/// ads" bought it shows a gift icon and rewards right away. Ignores taps
+/// while its ad is running, so a reward can never be claimed twice.
+class AdButton extends ConsumerStatefulWidget {
   const AdButton({
     super.key,
     required this.placement,
@@ -36,6 +37,9 @@ class AdButton extends ConsumerWidget {
   });
 
   final AdPlacement placement;
+
+  /// Runs after the ad, even if this button is gone by then (e.g. its sheet
+  /// was closed), so it must not use this button's context.
   final VoidCallback onReward;
 
   /// Runs before the ad, e.g. to take an expiring event off screen.
@@ -49,25 +53,40 @@ class AdButton extends ConsumerWidget {
   final bool compact;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdButton> createState() => _AdButtonState();
+}
+
+class _AdButtonState extends ConsumerState<AdButton> {
+  bool _busy = false;
+
+  Future<void> _press() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    // Callbacks are taken now: the widget may be rebuilt or gone later.
+    final onReward = widget.onReward;
+    final onSkipped = widget.onSkipped;
+    widget.onStart?.call();
+    final ok = await watchAd(context, ref, widget.placement);
+    if (ok) {
+      onReward();
+    } else {
+      onSkipped?.call();
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final free = ref.watch(gameProvider.select((s) => s.meta.adsRemoved));
+    final compact = widget.compact;
     return ChunkyButton(
-      color: color,
+      color: widget.color,
       radius: compact ? 10 : 14,
       padding: compact
           ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
           : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      onPressed: enabled
-          ? () async {
-              onStart?.call();
-              if (await watchAd(context, ref, placement)) {
-                onReward();
-              } else {
-                onSkipped?.call();
-              }
-            }
-          : null,
+      onPressed: widget.enabled && !_busy ? _press : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -76,11 +95,14 @@ class AdButton extends ConsumerWidget {
             size: compact ? 14 : 18,
           ),
           const SizedBox(width: 4),
-          Text(
-            label ?? (free ? l10n.freeReward : l10n.watchAd),
-            style: TextStyle(
-              fontSize: compact ? 11 : 13,
-              fontWeight: FontWeight.w800,
+          Flexible(
+            child: Text(
+              widget.label ?? (free ? l10n.freeReward : l10n.watchAd),
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: compact ? 11 : 13,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],

@@ -26,7 +26,7 @@ Eski GPU → Oyun GPU'su kümesi → Veri merkezi GPU'su → TPU podu → Süper
 
 **Yöneticiler:** Her hattı otomatikleştirir ve bonus verir (ör. "Baş Mühendis: Soğutma maliyeti −%20").
 
-**Lokasyonlar (ilerleme haritası):** Garaj → Depo → Kampüs → Hiperölçek Merkez (İzlanda, soğuk iklim bonusu) → Okyanus Altı Merkez → Yörünge Veri Merkezi. Her lokasyon yeni bir "dünya"dır, ilerleme çarpanı taşır.
+**Lokasyonlar (ilerleme haritası):** Garaj → Depo → Kampüs → Hiperölçek Merkez (İzlanda, soğuk iklim bonusu) → Okyanus Altı Merkez → Yörünge Veri Merkezi (şimdilik ilk 3'ü oyunda; diğerleri IDEAS.md'de). Her lokasyon yeni bir "dünya"dır, ilerleme çarpanı taşır.
 
 **Prestij: "Halka Arz (IPO)"**
 - Oyuncu şirketi halka arz eder, her şey sıfırlanır, karşılığında **Hisse (Shares)** kazanır.
@@ -74,7 +74,7 @@ Eski GPU → Oyun GPU'su kümesi → Veri merkezi GPU'su → TPU podu → Süper
 - Klasör yapısı: `lib/core` (BigNumber, ekonomi motoru), `lib/game` (sistemler), `lib/ui`, `lib/services` (ads, analytics, save, iap).
 - Ekonomi motoru ve BigNumber için **birim testleri** zorunlu.
 - Orta seviye Android telefonda 60 FPS.
-- Dil: **İngilizce varsayılan, Türkçe ikinci dil** (Flutter l10n). Tüm metinler çeviri dosyalarında.
+- Dil: **35 dil**, varsayılan cihaz dili (yoksa İngilizce), Ayarlar'dan seçilebilir (Flutter l10n; bkz. karar kaydı). Tüm metinler çeviri dosyalarında.
 
 ## 6. Görsel yön
 
@@ -149,6 +149,7 @@ Firebase Analytics + Remote Config. Olaylar: oturum, hat açılması, yükseltme
 | 2026-10-02 | Animasyonlar (A4) | Kilometre taşında kartta "×2!" patlaması ve halka; IPO/taşınma/satın almada tam ekran konfeti; görev ödülü ve çark sonunda küçük konfeti; seviye ve yönetici alımında kart parlaması. Paket kullanılmadı. |
 | 2026-10-02 | Analitik ve Remote Config (A4) | `AnalyticsService` ve `RemoteConfigService` arayüzleri hazır; tüm oyun olayları tek bir olay akışından (`GameEventBus`) analitiğe gider: session_start, first_tap, buy_levels, line_unlock, milestone, hire_manager, buy_upgrade, buy_infra, buy_skill, move, ipo, quest_claim, event_collect, wheel_spin, time_warp, ad_reward_start/complete (yerleşimle), ad_interstitial, purchase, tutorial_step. Şimdilik olaylar geliştirici menüsünde görünür; Firebase bağlantısı 5. aşamada. Remote Config, `economy.json` üzerine kısmi değerleri birleştirir (ör. çevrimdışı süre). |
 | 2026-10-02 | Diller (güncelleme) | "Yalnızca İngilizce" kararı değişti: oyun dünyada en çok konuşulan 35 dilde (İngilizce, Çince basit/geleneksel, Hintçe, İspanyolca, Fransızca, Arapça, Bengalce, Portekizce, Rusça, Urduca, Endonezce, Almanca, Japonca, Marathi, Telugu, Türkçe, Tamilce, Vietnamca, Korece, Farsça, Svahili, İtalyanca, Tayca, Gujarati, Amharca, Kannada, Lehçe, Ukraynaca, Malayalam, Pencapça, Filipince, Malayca, Felemenkçe, Rumence). Varsayılan cihaz dili (yoksa İngilizce); Ayarlar > Language'den seçilebilir. Arapça/Farsça/Urduca sağdan sola görünür. Çeviriler `tool/l10n/check_arb.py` ile kontrol edilir (eksik anahtar/yer tutucu). Çeviriler yapay zekâ ile yapıldı; yayından önce önemli pazarlarda ana dili konuşan birine göz attırmak iyi olur. |
+| 2026-10-02 | Genel kontrol | Baştan sona inceleme (4 ayrı inceleme + 35 dilde taşma testi) sonrası düzeltmeler: satın alımlar artık önce teslim edilip kaydediliyor, sonra mağazaya "tamamlandı" deniyor; Android'de jeton paketleri teslimattan sonra elle tüketiliyor; açılışta yarım kalmış Android satın alımları geri yükleniyor; reklam yükleme hatasında tekrar deneme; boost'lar birbirini silmiyor (güçlü olan kalır, diğeri süre olarak eklenir); saat bir kez ileri alınmışsa çevrimdışı kazanç/çark kilitlenmiyor; reklam butonlarına çift dokunma koruması; sağdan sola dillerde hizalama. Yayın (Aşama 5) için bilinenler: imzalı AAB, artan sürüm numarası, mağaza derlemesinde geliştirici menüsü KAPALI olmalı. |
 
 ---
 

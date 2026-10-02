@@ -92,6 +92,7 @@ class MetaState {
     this.lastFreeSpinMs = 0,
     this.adSpinsDay = 0,
     this.adSpinsUsed = 0,
+    this.ownedProducts = const {},
   });
 
   // Fields added after save v3 default when missing, so no migration step
@@ -109,6 +110,9 @@ class MetaState {
     lastFreeSpinMs: (json['lastFreeSpinMs'] as num?)?.toInt() ?? 0,
     adSpinsDay: (json['adSpinsDay'] as num?)?.toInt() ?? 0,
     adSpinsUsed: (json['adSpinsUsed'] as num?)?.toInt() ?? 0,
+    ownedProducts:
+        (json['ownedProducts'] as List<Object?>?)?.cast<String>().toSet() ??
+        const {},
   );
 
   /// Unspent shares; each adds the configured income bonus.
@@ -141,6 +145,9 @@ class MetaState {
   final int adSpinsDay;
   final int adSpinsUsed;
 
+  /// One-time products bought (ids).
+  final Set<String> ownedProducts;
+
   MetaState copyWith({
     BigNumber? shares,
     Set<String>? skills,
@@ -154,6 +161,7 @@ class MetaState {
     int? lastFreeSpinMs,
     int? adSpinsDay,
     int? adSpinsUsed,
+    Set<String>? ownedProducts,
   }) => MetaState(
     shares: shares ?? this.shares,
     skills: skills ?? this.skills,
@@ -167,6 +175,7 @@ class MetaState {
     lastFreeSpinMs: lastFreeSpinMs ?? this.lastFreeSpinMs,
     adSpinsDay: adSpinsDay ?? this.adSpinsDay,
     adSpinsUsed: adSpinsUsed ?? this.adSpinsUsed,
+    ownedProducts: ownedProducts ?? this.ownedProducts,
   );
 
   Map<String, Object?> toJson() => {
@@ -182,6 +191,7 @@ class MetaState {
     'lastFreeSpinMs': lastFreeSpinMs,
     'adSpinsDay': adSpinsDay,
     'adSpinsUsed': adSpinsUsed,
+    'ownedProducts': ownedProducts.toList(),
   };
 }
 

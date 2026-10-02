@@ -12,6 +12,7 @@ import '../theme.dart';
 import 'ad_button.dart';
 import 'chunky_button.dart';
 import 'glass_card.dart';
+import 'toast.dart';
 
 const tokenColor = Color(0xFF5CC8FF);
 
@@ -176,7 +177,7 @@ class _BoostsTab extends ConsumerWidget {
                   Expanded(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       child: Text(
                         overclock > 0
                             ? l10n.overclockLeft(formatDuration(overclock))
@@ -303,9 +304,7 @@ class _WarpTile extends ConsumerWidget {
                 ref.read(gameProvider.notifier).timeWarp(warp);
               } else {
                 DefaultTabController.of(context).animateTo(1);
-                ScaffoldMessenger.maybeOf(
-                  context,
-                )?.showSnackBar(SnackBar(content: Text(l10n.notEnoughTokens)));
+                showToast(context, l10n.notEnoughTokens);
               }
             },
             child: Text(l10n.timeWarpCost('${warp.tokens}')),

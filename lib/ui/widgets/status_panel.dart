@@ -243,7 +243,7 @@ class _InfraGauge extends ConsumerWidget {
                     ),
                     FittedBox(
                       fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       child: Text(
                         l10n.capacityUsage(
                           formatPower(engine.demand(state, kind)),
@@ -268,7 +268,7 @@ class _InfraGauge extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: FractionallySizedBox(
                 widthFactor: load.clamp(0.02, 1.0),
                 child: Container(

@@ -372,12 +372,7 @@ class EconomyEngine {
   /// rewarded ad: longer boosts, more cash.
   GameState applyEvent(GameState s, EventConfig event, {double factor = 1}) =>
       switch (event.kind) {
-        EventKind.boost => s.copyWith(
-          boost: Boost(
-            multiplier: event.value,
-            secondsLeft: event.seconds * factor,
-          ),
-        ),
+        EventKind.boost => applyBoost(s, event.value, event.seconds * factor),
         EventKind.cash => s.earn(fullRate(s).scale(event.value * factor)),
       };
 
@@ -411,14 +406,23 @@ class EconomyEngine {
   );
 
   /// A strong, short boost. Replaces a weaker running boost.
+  ///
+  /// Boosts never cancel each other: the stronger multiplier stays and the
+  /// other boost's extra income is added to it as time, so a paid boost is
+  /// never lost to an event (or the other way round).
   GameState applyBoost(GameState s, double multiplier, double seconds) {
     final current = s.boost;
-    if (current != null &&
-        current.multiplier * current.secondsLeft > multiplier * seconds) {
-      return s;
+    if (current == null || current.multiplier <= 1) {
+      return s.copyWith(
+        boost: Boost(multiplier: multiplier, secondsLeft: seconds),
+      );
     }
+    final (strong, weak) = current.multiplier >= multiplier
+        ? ((current.multiplier, current.secondsLeft), (multiplier, seconds))
+        : ((multiplier, seconds), (current.multiplier, current.secondsLeft));
+    final extra = (weak.$1 - 1) * weak.$2 / (strong.$1 - 1);
     return s.copyWith(
-      boost: Boost(multiplier: multiplier, secondsLeft: seconds),
+      boost: Boost(multiplier: strong.$1, secondsLeft: strong.$2 + extra),
     );
   }
 
@@ -431,9 +435,10 @@ class EconomyEngine {
 
   GameState? timeWarp(GameState s, TimeWarpConfig warp) {
     if (s.meta.tokens < warp.tokens) return null;
-    return s
-        .earn(timeWarpValue(s, warp))
-        .copyWith(meta: s.meta.copyWith(tokens: s.meta.tokens - warp.tokens));
+    final earned = s.earn(timeWarpValue(s, warp));
+    return earned.copyWith(
+      meta: earned.meta.copyWith(tokens: earned.meta.tokens - warp.tokens),
+    );
   }
 
   /// Cash still missing for [cost] when it is small enough for the
@@ -449,13 +454,13 @@ class EconomyEngine {
       s.copyWith(cash: s.cash + amount);
 
   bool freeSpinReady(GameState s, int nowMs) =>
-      nowMs - s.meta.lastFreeSpinMs >= _m.wheel.freeEverySeconds * 1000;
+      secondsToFreeSpin(s, nowMs) <= 0;
 
-  /// Seconds until the next free spin (0 when ready).
-  double secondsToFreeSpin(GameState s, int nowMs) => math.max(
-    0,
-    _m.wheel.freeEverySeconds - (nowMs - s.meta.lastFreeSpinMs) / 1000,
-  );
+  /// Seconds until the next free spin (0 when ready). Never more than one
+  /// interval, so a clock that was set ahead once cannot lock the wheel.
+  double secondsToFreeSpin(GameState s, int nowMs) =>
+      (_m.wheel.freeEverySeconds - (nowMs - s.meta.lastFreeSpinMs) / 1000)
+          .clamp(0.0, _m.wheel.freeEverySeconds);
 
   int adSpinsLeft(GameState s, int day) => math.max(
     0,
@@ -515,8 +520,10 @@ class EconomyEngine {
   /// Whether a one-time product is already owned.
   bool ownsProduct(GameState s, ProductConfig product) =>
       product.kind == ProductKind.nonConsumable &&
-      (!product.removesAds || s.meta.adsRemoved) &&
-      (product.incomeMultiplier <= 1 || s.meta.starterPack);
+      (s.meta.ownedProducts.contains(product.id) ||
+          // Saves from before owned products were tracked.
+          (product.removesAds && s.meta.adsRemoved) ||
+          (product.incomeMultiplier > 1 && s.meta.starterPack));
 
   /// Grants a bought product. A restored one-time product that is already
   /// owned grants nothing again.
@@ -527,6 +534,9 @@ class EconomyEngine {
         tokens: s.meta.tokens + product.tokens,
         adsRemoved: s.meta.adsRemoved || product.removesAds,
         starterPack: s.meta.starterPack || product.incomeMultiplier > 1,
+        ownedProducts: product.kind == ProductKind.nonConsumable
+            ? {...s.meta.ownedProducts, product.id}
+            : null,
       ),
     );
   }

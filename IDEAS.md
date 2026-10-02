@@ -22,3 +22,4 @@ Aşama kapsamı dışında kalan fikirler. Bir fikir aşamaya alınınca `GAME_B
 - Titreşim (haptic) geri bildirimi: satın alma ve kilometre taşında hafif titreşim.
 - Tutorial'a ikinci hat ve altyapı adımları; ilk IPO'da Max'in açıklama turu.
 
+- Rusça/Ukraynaca/Lehçe gibi dillerde çoğul ekleri (ör. "+2 акции"): metinlere ICU çoğul biçimi eklenebilir.

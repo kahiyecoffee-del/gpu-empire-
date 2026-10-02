@@ -48,8 +48,8 @@ class FloatingGainsState extends State<FloatingGains>
       children: [
         widget.child,
         for (final (text, controller) in _labels)
-          Positioned(
-            left: 8,
+          PositionedDirectional(
+            start: 8,
             top: 0,
             child: IgnorePointer(
               child: AnimatedBuilder(

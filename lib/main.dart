@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,7 +47,8 @@ Future<void> main() async {
   final saves = SaveService(PrefsSaveStore(prefs), config);
   final music = LoopingMusicService();
   unawaited(music.prepare());
-  final sfx = PooledSfxService();
+  // Browsers limit audio contexts: one voice per effect there.
+  final sfx = PooledSfxService(voices: kIsWeb ? 1 : 3);
   unawaited(sfx.prepare());
   final analytics = DebugAnalyticsService();
   await analytics.init();

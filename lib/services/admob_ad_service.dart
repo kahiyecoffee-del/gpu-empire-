@@ -18,8 +18,18 @@ class AdMobAdService implements AdService {
       ? 'ca-app-pub-3940256099942544/4411468910'
       : 'ca-app-pub-3940256099942544/1033173712';
 
+  /// Waits between retries after a failed load (no fill, offline).
+  static const _retryDelays = [10, 30, 60, 120, 300];
+
   RewardedAd? _rewarded;
   InterstitialAd? _interstitial;
+  bool _loadingRewarded = false;
+  bool _loadingInterstitial = false;
+  int _rewardedFailures = 0;
+  int _interstitialFailures = 0;
+
+  /// Shared, so overlapping callers start the SDK only once.
+  Future<bool>? _starting;
   bool _started = false;
 
   @override
@@ -39,34 +49,63 @@ class AdMobAdService implements AdService {
     await _startIfAllowed();
   }
 
-  Future<void> _startIfAllowed() async {
-    if (_started || !await ConsentInformation.instance.canRequestAds()) {
-      return;
-    }
-    _started = true;
-    await MobileAds.instance.initialize();
-    _loadRewarded();
-    _loadInterstitial();
+  Future<bool> _startIfAllowed() {
+    if (_started) return Future.value(true);
+    return _starting ??= () async {
+      try {
+        if (!await ConsentInformation.instance.canRequestAds()) return false;
+        await MobileAds.instance.initialize();
+        _started = true;
+        _loadRewarded();
+        _loadInterstitial();
+        return true;
+      } finally {
+        // Allow a new attempt later (e.g. after consent is given).
+        _starting = null;
+      }
+    }();
   }
 
+  Duration _retryAfter(int failures) => Duration(
+    seconds: _retryDelays[(failures - 1).clamp(0, _retryDelays.length - 1)],
+  );
+
   void _loadRewarded() {
+    if (!_started || _rewarded != null || _loadingRewarded) return;
+    _loadingRewarded = true;
     RewardedAd.load(
       adUnitId: _rewardedId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) => _rewarded = ad,
-        onAdFailedToLoad: (_) => _rewarded = null,
+        onAdLoaded: (ad) {
+          _loadingRewarded = false;
+          _rewardedFailures = 0;
+          _rewarded = ad;
+        },
+        onAdFailedToLoad: (_) {
+          _loadingRewarded = false;
+          Timer(_retryAfter(++_rewardedFailures), _loadRewarded);
+        },
       ),
     );
   }
 
   void _loadInterstitial() {
+    if (!_started || _interstitial != null || _loadingInterstitial) return;
+    _loadingInterstitial = true;
     InterstitialAd.load(
       adUnitId: _interstitialId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitial = ad,
-        onAdFailedToLoad: (_) => _interstitial = null,
+        onAdLoaded: (ad) {
+          _loadingInterstitial = false;
+          _interstitialFailures = 0;
+          _interstitial = ad;
+        },
+        onAdFailedToLoad: (_) {
+          _loadingInterstitial = false;
+          Timer(_retryAfter(++_interstitialFailures), _loadInterstitial);
+        },
       ),
     );
   }
@@ -76,7 +115,7 @@ class AdMobAdService implements AdService {
     await _startIfAllowed();
     final ad = _rewarded;
     if (ad == null) {
-      if (_started) _loadRewarded();
+      _loadRewarded();
       return false;
     }
     _rewarded = null;
@@ -85,11 +124,11 @@ class AdMobAdService implements AdService {
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        closed.complete(earned);
+        if (!closed.isCompleted) closed.complete(earned);
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();
-        closed.complete(false);
+        if (!closed.isCompleted) closed.complete(false);
       },
     );
     await ad.show(onUserEarnedReward: (_, _) => earned = true);
@@ -99,24 +138,28 @@ class AdMobAdService implements AdService {
   }
 
   @override
-  Future<void> showInterstitial() async {
+  Future<bool> showInterstitial() async {
     final ad = _interstitial;
-    if (ad == null) return;
+    if (ad == null) {
+      _loadInterstitial();
+      return false;
+    }
     _interstitial = null;
-    final closed = Completer<void>();
+    final closed = Completer<bool>();
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        closed.complete();
+        if (!closed.isCompleted) closed.complete(true);
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();
-        closed.complete();
+        if (!closed.isCompleted) closed.complete(false);
       },
     );
     await ad.show();
-    await closed.future;
+    final shown = await closed.future;
     _loadInterstitial();
+    return shown;
   }
 
   @override

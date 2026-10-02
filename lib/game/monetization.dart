@@ -22,6 +22,11 @@ final storeServiceProvider = Provider<StoreService>(
 
 final adsProvider = Provider<AdsController>(AdsController.new);
 
+/// Whether settings must offer "Privacy options" (asked once).
+final privacyOptionsRequiredProvider = FutureProvider<bool>(
+  (ref) => ref.watch(adServiceProvider).privacyOptionsRequired(),
+);
+
 /// Ad rules on top of [AdService]: "Remove ads" makes rewarded ads free and
 /// turns interstitials off, and interstitials follow [InterstitialPolicy].
 class AdsController {
@@ -75,29 +80,40 @@ class AdsController {
     );
     if (!allowed || _showing) return;
     _showing = true;
-    _ref.read(gameEventsProvider).emit(GameEventType.adInterstitial);
     try {
-      await _service.showInterstitial();
+      // The gap only restarts when an ad was really shown.
+      if (await _service.showInterstitial()) {
+        _ref.read(gameEventsProvider).emit(GameEventType.adInterstitial);
+        _lastFullScreen = _session.elapsed;
+      }
     } finally {
       _showing = false;
-      _lastFullScreen = _session.elapsed;
     }
   }
 }
 
-final storeProvider = Provider<StoreController>((ref) {
-  final controller = StoreController(ref);
-  ref.onDispose(controller.dispose);
-  return controller;
-});
+final storeProvider = Provider<StoreController>(StoreController.new);
 
-/// Delivers purchases from the store into the game and saves at once, so a
-/// paid product is never lost to a crash.
+/// Whether the app is in the background (set by the session). Saves made
+/// then keep the last-seen time, so offline earnings are not swallowed.
+final appAwayProvider = NotifierProvider<AppAwayController, bool>(
+  AppAwayController.new,
+);
+
+class AppAwayController extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set({required bool away}) => state = away;
+}
+
+/// Delivers purchases into the game and saves before the store is told
+/// the purchase is done, so a paid product is never lost to a crash.
 class StoreController {
   StoreController(this._ref);
 
   final Ref _ref;
-  StreamSubscription<String>? _sub;
+  bool _started = false;
 
   StoreService get _service => _ref.read(storeServiceProvider);
 
@@ -105,17 +121,20 @@ class StoreController {
       _ref.read(economyConfigProvider).monetization;
 
   Future<void> init() async {
-    _sub ??= _service.purchases.listen(_deliver);
-    await _service.init(_config.products);
+    if (_started) return;
+    _started = true;
+    await _service.init(_config.products, _deliver);
   }
 
-  void _deliver(String productId) {
+  Future<void> _deliver(String productId) async {
     final product = _config.products
         .where((p) => p.id == productId)
         .firstOrNull;
     if (product == null) return;
     _ref.read(gameProvider.notifier).deliverProduct(product);
-    unawaited(_ref.read(saveServiceProvider).save(_ref.read(gameProvider)));
+    await _ref
+        .read(saveServiceProvider)
+        .save(_ref.read(gameProvider), touch: !_ref.read(appAwayProvider));
   }
 
   String price(ProductConfig product) =>
@@ -124,6 +143,4 @@ class StoreController {
   Future<bool> buy(ProductConfig product) => _service.buy(product);
 
   Future<void> restore() => _service.restore();
-
-  void dispose() => unawaited(_sub?.cancel());
 }

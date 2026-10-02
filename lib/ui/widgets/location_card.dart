@@ -62,7 +62,7 @@ class LocationCard extends ConsumerWidget {
                 const SizedBox(height: 4),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     l10n.locationGoal(
                       '\$${formatBig(state.locationEarned.min(goal))}',

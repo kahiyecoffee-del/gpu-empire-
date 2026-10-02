@@ -10,8 +10,8 @@ abstract class AdService {
   /// Shows a rewarded ad. True if the player watched it to the end.
   Future<bool> showRewarded(AdPlacement placement);
 
-  /// Shows an interstitial if one is loaded.
-  Future<void> showInterstitial();
+  /// Shows an interstitial if one is loaded. True if one was shown.
+  Future<bool> showInterstitial();
 
   /// Whether the "Privacy options" entry must be shown in settings.
   Future<bool> privacyOptionsRequired();
@@ -30,7 +30,7 @@ class InstantAdService implements AdService {
   Future<bool> showRewarded(AdPlacement placement) async => true;
 
   @override
-  Future<void> showInterstitial() async {}
+  Future<bool> showInterstitial() async => false;
 
   @override
   Future<bool> privacyOptionsRequired() async => false;

@@ -46,7 +46,11 @@ final tutorialProvider = Provider<TutorialTip?>((ref) {
       return TutorialTip(TutorialStep.tap, TutorialKeys.rack);
     }
     if (line.level < 2) {
-      final affordable = engine.levelCost(state, 0, 1) <= state.cash;
+      // What the highlighted button offers in the current buy mode.
+      final affordable = ref
+          .read(gameProvider.notifier)
+          .offer(0, ref.watch(buyModeProvider))
+          .affordable;
       return affordable
           ? TutorialTip(TutorialStep.buy, TutorialKeys.buy)
           : TutorialTip(TutorialStep.save, TutorialKeys.rack);

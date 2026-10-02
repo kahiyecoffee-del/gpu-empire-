@@ -59,24 +59,16 @@ class _SettingsSheet extends ConsumerWidget {
             onChanged: (on) =>
                 ref.read(settingsProvider.notifier).setSfx(on: on),
           ),
-          FutureBuilder<bool>(
-            future: ref.read(adServiceProvider).privacyOptionsRequired(),
-            builder: (context, snapshot) => snapshot.data ?? false
-                ? ListTile(
-                    leading: const Icon(
-                      Icons.privacy_tip,
-                      color: AppColors.accent,
-                    ),
-                    title: Text(l10n.privacyOptions),
-                    subtitle: Text(
-                      l10n.privacyOptionsHint,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                    onTap: () =>
-                        ref.read(adServiceProvider).showPrivacyOptions(),
-                  )
-                : const SizedBox.shrink(),
-          ),
+          if (ref.watch(privacyOptionsRequiredProvider).value ?? false)
+            ListTile(
+              leading: const Icon(Icons.privacy_tip, color: AppColors.accent),
+              title: Text(l10n.privacyOptions),
+              subtitle: Text(
+                l10n.privacyOptionsHint,
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              onTap: () => ref.read(adServiceProvider).showPrivacyOptions(),
+            ),
           ListTile(
             key: const ValueKey('settings_language'),
             leading: const Icon(Icons.language, color: AppColors.accent),

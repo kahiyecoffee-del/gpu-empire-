@@ -69,6 +69,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final engine = ref.read(engineProvider);
     final cap = engine.offlineCapSeconds(report.state);
     final multiplier = engine.config.monetization.offlineAdMultiplier;
+    final game = ref.read(gameProvider.notifier);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -103,13 +104,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           AdButton(
             key: const ValueKey('ad_offline'),
             placement: AdPlacement.offline,
-            label: l10n.offlineAdButton(formatMultiplier(multiplier)),
+            label: ref.read(gameProvider).meta.adsRemoved
+                ? '${l10n.freeReward} ×${formatMultiplier(multiplier)}'
+                : l10n.offlineAdButton(formatMultiplier(multiplier)),
             onReward: () {
               // The base amount is already paid; add the rest.
-              ref
-                  .read(gameProvider.notifier)
-                  .addEarnings(report.earned.scale(multiplier - 1));
-              Navigator.pop(context);
+              game.addEarnings(report.earned.scale(multiplier - 1));
+              if (context.mounted) Navigator.pop(context);
             },
           ),
         ],
@@ -120,6 +121,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Past the basics (moved on or went public): the tutorial is over and
+    // the wheel and boosts appear.
+    ref.listen(
+      gameProvider.select((s) => s.locationIndex > 0 || s.meta.ipoCount > 0),
+      (_, past) {
+        if (past && !ref.read(settingsProvider).tutorialDone) {
+          ref.read(settingsProvider.notifier).setTutorialDone(done: true);
+        }
+      },
+    );
     ref.listen(offlineReportProvider, (previous, next) {
       if (next != null && previous == null) _showOffline(next);
     });
@@ -296,9 +307,9 @@ class _TopArea extends StatelessWidget {
         child: Stack(
           children: [
             const StatusPanel(),
-            Positioned(
+            PositionedDirectional(
               top: 4,
-              right: 4,
+              end: 4,
               child: IconButton(
                 tooltip: AppLocalizations.of(context).settings,
                 icon: const Icon(

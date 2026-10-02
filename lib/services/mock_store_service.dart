@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../core/monetization.dart';
@@ -11,18 +9,19 @@ class MockStoreService implements StoreService {
   MockStoreService([this.navigatorKey]);
 
   final GlobalKey<NavigatorState>? navigatorKey;
-  final _purchases = StreamController<String>.broadcast();
   final Map<String, String> _prices = {};
+  DeliverProduct? _deliver;
 
   @override
-  Future<void> init(List<ProductConfig> products) async {
+  Future<void> init(
+    List<ProductConfig> products,
+    DeliverProduct deliver,
+  ) async {
+    _deliver = deliver;
     for (final p in products) {
       _prices[p.id] = p.fallbackPrice;
     }
   }
-
-  @override
-  Stream<String> get purchases => _purchases.stream;
 
   @override
   Map<String, String> get prices => _prices;
@@ -53,7 +52,7 @@ class MockStoreService implements StoreService {
       );
       if (!(ok ?? false)) return false;
     }
-    _purchases.add(product.id);
+    await _deliver?.call(product.id);
     return true;
   }
 

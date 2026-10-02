@@ -39,22 +39,24 @@ class PooledSfxService implements SfxService {
     Sfx.whoosh: 0.4,
   };
 
+  /// Loads every effect in parallel; a slow or failed one (mobile browsers
+  /// may wait for a first touch) never holds up the others.
   @override
-  Future<void> prepare() async {
-    for (final sfx in Sfx.values) {
-      final players = <AudioPlayer>[];
-      for (var i = 0; i < voices; i++) {
-        final player = AudioPlayer();
-        try {
-          await player.setReleaseMode(ReleaseMode.stop);
-          await player.setVolume(_volume[sfx]!);
-          await player.setSource(AssetSource('audio/sfx_${sfx.name}.mp3'));
-          players.add(player);
-        } on Object {
-          // Sounds are a nicety: a failed load must never break the game.
-        }
-      }
-      _pools[sfx] = players;
+  Future<void> prepare() => Future.wait([
+    for (final sfx in Sfx.values)
+      for (var i = 0; i < voices; i++) _load(sfx),
+  ]);
+
+  Future<void> _load(Sfx sfx) async {
+    final player = AudioPlayer();
+    try {
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setVolume(_volume[sfx]!);
+      await player.setSource(AssetSource('audio/sfx_${sfx.name}.mp3'));
+      (_pools[sfx] ??= []).add(player);
+    } on Object {
+      // Sounds are a nicety: a failed load must never break the game.
+      await player.dispose().catchError((Object _) {});
     }
   }
 

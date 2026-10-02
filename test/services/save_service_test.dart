@@ -47,6 +47,19 @@ void main() {
       expect(stored['version'], currentSaveVersion);
     });
 
+    test(
+      'a clock that was a day ahead once does not block offline pay',
+      () async {
+        final store = MemorySaveStore();
+        var now = 400 * 24 * 3600 * 1000;
+        final saves = SaveService(store, config, clock: () => now);
+        await saves.save(withLevels([1, 0]));
+        now = 10 * 24 * 3600 * 1000; // Clock fixed: a year earlier.
+        await saves.save(withLevels([1, 0]));
+        expect(saves.lastSeenMs, now);
+      },
+    );
+
     test('clear removes the save', () async {
       final store = MemorySaveStore();
       final saves = SaveService(store, config);

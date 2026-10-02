@@ -142,7 +142,7 @@ class _EventBubbleState extends ConsumerState<EventBubble>
                       // Take the event now so it cannot expire during the
                       // ad; pay it doubled after, or plain if skipped.
                       onStart: () =>
-                          _taken = ref.read(eventProvider.notifier).take(),
+                          _taken ??= ref.read(eventProvider.notifier).take(),
                       onReward: () =>
                           _pay(engine.config.monetization.eventAdMultiplier),
                       onSkipped: () => _pay(1),

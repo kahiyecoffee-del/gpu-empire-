@@ -62,6 +62,7 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
     final state = ref.watch(gameProvider);
     final board = ref.watch(questBoardProvider);
     final engine = ref.watch(engineProvider);
+    final game = ref.read(gameProvider.notifier);
     final (quest, isContract) = board.active(state);
     final progress = board.progress(state, quest);
     final complete = progress.isComplete;
@@ -133,9 +134,13 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
                       engine.config.monetization.questAdMultiplier,
                     ),
                   ),
-                  onReward: () => _claim(
-                    factor: engine.config.monetization.questAdMultiplier,
-                  ),
+                  onReward: () {
+                    final factor = engine.config.monetization.questAdMultiplier;
+                    // Scrolled away during the ad: still pay the reward.
+                    mounted
+                        ? _claim(factor: factor)
+                        : game.claimQuest(factor: factor);
+                  },
                 ),
               ],
             ),

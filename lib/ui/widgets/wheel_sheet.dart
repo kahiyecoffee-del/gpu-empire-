@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/economy_engine.dart';
 import '../../core/monetization.dart';
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
@@ -79,6 +80,16 @@ class _WheelSheetState extends ConsumerState<_WheelSheet>
   double get _angle =>
       _from + (_to - _from) * Curves.easeOutCubic.transform(_spin.value);
 
+  /// Spins without the sheet (it was closed while the ad played), so the
+  /// watched ad still pays.
+  static void _spinQuietly(GameController game, EconomyEngine engine) {
+    game.spinWheel(
+      engine.pickPrize(math.Random().nextDouble()),
+      free: false,
+      now: DateTime.now(),
+    );
+  }
+
   Future<void> _go({required bool free}) async {
     if (_spinning) return;
     final game = ref.read(gameProvider.notifier);
@@ -129,6 +140,7 @@ class _WheelSheetState extends ConsumerState<_WheelSheet>
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
     final prizes = engine.config.monetization.wheel.prizes;
+    final game = ref.read(gameProvider.notifier);
     final now = ref.watch(clockProvider)();
     final freeReady = engine.freeSpinReady(state, now.millisecondsSinceEpoch);
     final adLeft = engine.adSpinsLeft(state, dayKey(now));
@@ -208,7 +220,13 @@ class _WheelSheetState extends ConsumerState<_WheelSheet>
                   placement: AdPlacement.wheel,
                   enabled: !_spinning,
                   label: l10n.wheelAdSpin('$adLeft'),
-                  onReward: () => unawaited(_go(free: false)),
+                  onReward: () {
+                    if (mounted) {
+                      unawaited(_go(free: false));
+                    } else {
+                      _spinQuietly(game, engine);
+                    }
+                  },
                 )
               else
                 Text(

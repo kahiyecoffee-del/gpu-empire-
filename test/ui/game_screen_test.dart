@@ -139,7 +139,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('wheel_free')));
     await tester.pump();
     await tester.pump(const Duration(seconds: 4));
-    expect(container.read(gameProvider).meta.lastFreeSpinMs, isNot(0));
+    final after = container.read(gameProvider);
+    expect(after.meta.lastFreeSpinMs, isNot(0));
+    // The prize was really paid: cash, tokens, a boost or overclock.
+    expect(
+      after.cash > BigNumber.zero ||
+          after.meta.tokens > 0 ||
+          after.boost != null ||
+          after.meta.overclockSeconds > 0,
+      isTrue,
+    );
     expect(find.textContaining('You won'), findsOneWidget);
     expect(find.byKey(const ValueKey('wheel_free')), findsNothing);
   });

@@ -169,7 +169,7 @@ class _LineCardState extends ConsumerState<LineCard>
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 lineName(l10n, config.id),
                                 maxLines: 1,
@@ -358,7 +358,7 @@ class _JobProgress extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: FractionallySizedBox(
               widthFactor: value,
               heightFactor: 1,
@@ -452,9 +452,16 @@ class _BuyButton extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              l10n.buyButton('${offer.count}'),
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                l10n.buyButton('${offer.count}'),
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             FittedBox(
               fit: BoxFit.scaleDown,

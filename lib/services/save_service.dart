@@ -71,6 +71,19 @@ class SaveService {
 
   int now() => _clock();
 
+  /// A stored time this far ahead of the clock is treated as a clock that
+  /// was wrong once, not as cheating.
+  static const _maxAheadMs = 24 * 3600 * 1000;
+
+  /// Never moves backwards (turning the clock back and forth must not pay
+  /// the same hours twice), unless the stored time is more than a day in
+  /// the future: then it snaps back, so a wrong clock cannot block offline
+  /// earnings forever.
+  int _advance(int stored, int candidate) {
+    final latest = math.max(stored, candidate);
+    return latest - now() > _maxAheadMs ? now() : latest;
+  }
+
   /// Returns null when there is no save or it cannot be read.
   Future<SaveSnapshot?> load() async {
     final raw = await _store.read();
@@ -78,7 +91,7 @@ class SaveService {
     try {
       final json = migrateSave(jsonDecode(raw) as Map<String, Object?>);
       final lastSeen = (json['lastSeenMs']! as num).toInt();
-      _lastSeenMs = math.max(_lastSeenMs, lastSeen);
+      _lastSeenMs = _advance(_lastSeenMs, lastSeen);
       return SaveSnapshot(
         state: GameState.fromJson(
           json['state']! as Map<String, Object?>,
@@ -92,8 +105,11 @@ class SaveService {
     }
   }
 
-  Future<void> save(GameState state) {
-    _lastSeenMs = math.max(_lastSeenMs, now());
+  /// Writes [state]. With [touch] false the last-seen time is kept, so a
+  /// save while the app is in the background (a store purchase) does not
+  /// swallow offline earnings.
+  Future<void> save(GameState state, {bool touch = true}) {
+    if (touch) _lastSeenMs = _advance(_lastSeenMs, now());
     return _store.write(
       jsonEncode({
         'version': currentSaveVersion,

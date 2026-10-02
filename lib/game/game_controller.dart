@@ -226,9 +226,16 @@ class GameController extends Notifier<GameState> {
     final o = offer(line, mode);
     final missing = _engine.nearMissing(state, o.cost);
     if (missing == null || !_engine.isAvailable(state, line)) return false;
+    // Top up to exactly the price: adding the difference can land a hair
+    // below it through rounding.
+    final topped = _engine.grantCash(state, missing);
     return _applyLevels(
       line,
-      _engine.buyLevels(_engine.grantCash(state, missing), line, o.count),
+      _engine.buyLevels(
+        topped.cash < o.cost ? topped.copyWith(cash: o.cost) : topped,
+        line,
+        o.count,
+      ),
     );
   }
 

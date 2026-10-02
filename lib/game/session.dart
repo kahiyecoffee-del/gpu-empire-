@@ -86,12 +86,14 @@ class _GameSessionState extends ConsumerState<GameSession> {
   void _onHide() {
     if (_away) return;
     _away = true;
+    ref.read(appAwayProvider.notifier).set(away: true);
     unawaited(_save());
   }
 
   void _onShow() {
     if (!_away) return;
     _away = false;
+    ref.read(appAwayProvider.notifier).set(away: false);
     final report = catchUp(
       ref.read(engineProvider),
       ref.read(gameProvider),
