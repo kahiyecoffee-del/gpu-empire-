@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../game/monetization.dart';
 import '../../services/settings_service.dart';
 import '../theme.dart';
 import 'icon_text.dart';
@@ -45,6 +46,29 @@ class _SettingsSheet extends ConsumerWidget {
             value: settings.musicOn,
             onChanged: (on) =>
                 ref.read(settingsProvider.notifier).setMusic(on: on),
+          ),
+          FutureBuilder<bool>(
+            future: ref.read(adServiceProvider).privacyOptionsRequired(),
+            builder: (context, snapshot) => snapshot.data ?? false
+                ? ListTile(
+                    leading: const Icon(
+                      Icons.privacy_tip,
+                      color: AppColors.accent,
+                    ),
+                    title: Text(l10n.privacyOptions),
+                    subtitle: Text(
+                      l10n.privacyOptionsHint,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                    ),
+                    onTap: () =>
+                        ref.read(adServiceProvider).showPrivacyOptions(),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restore, color: AppColors.accent),
+            title: Text(l10n.restorePurchases),
+            onTap: () => ref.read(storeProvider).restore(),
           ),
           const SizedBox(height: 8),
         ],

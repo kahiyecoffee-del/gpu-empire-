@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'big_number.dart';
 import 'economy_config.dart';
 import 'game_state.dart';
+import 'monetization.dart';
 
 enum InfraKind { power, cooling }
 
@@ -104,6 +105,22 @@ class EconomyEngine {
 
   double boostMultiplier(GameState s) => s.boost?.multiplier ?? 1;
 
+  /// "GPU Overclock" multiplier while overclock time remains.
+  double overclockMultiplier(GameState s) =>
+      s.meta.overclockSeconds > 0 ? config.monetization.overclockMultiplier : 1;
+
+  /// Permanent multiplier from bought products (the starter pack).
+  double purchaseMultiplier(GameState s) {
+    if (!s.meta.starterPack) return 1;
+    var multiplier = 1.0;
+    for (final p in config.monetization.products) {
+      if (p.incomeMultiplier > 1) {
+        multiplier *= p.incomeMultiplier;
+      }
+    }
+    return multiplier;
+  }
+
   /// Income of one completed job on [line].
   BigNumber incomePerJob(GameState s, int line) {
     final level = s.lines[line].level;
@@ -114,7 +131,9 @@ class EconomyEngine {
         upgradeMultiplier(s, line) *
         managerMultiplier(s, line) *
         skillProduct(s, SkillEffect.incomeMultiplier) *
-        boostMultiplier(s);
+        boostMultiplier(s) *
+        overclockMultiplier(s) *
+        purchaseMultiplier(s);
     return BigNumber.from(c.baseIncome * level * multipliers) *
         shareMultiplier(s);
   }
@@ -349,13 +368,168 @@ class EconomyEngine {
 
   // ---------------------------------------------------------------- events
 
-  /// Applies a collected random event.
-  GameState applyEvent(GameState s, EventConfig event) => switch (event.kind) {
-    EventKind.boost => s.copyWith(
-      boost: Boost(multiplier: event.value, secondsLeft: event.seconds),
+  /// Applies a collected random event. [factor] doubles the reward after a
+  /// rewarded ad: longer boosts, more cash.
+  GameState applyEvent(GameState s, EventConfig event, {double factor = 1}) =>
+      switch (event.kind) {
+        EventKind.boost => s.copyWith(
+          boost: Boost(
+            multiplier: event.value,
+            secondsLeft: event.seconds * factor,
+          ),
+        ),
+        EventKind.cash => s.earn(fullRate(s).scale(event.value * factor)),
+      };
+
+  // ---------------------------------------------------------- monetization
+
+  MonetizationConfig get _m => config.monetization;
+
+  /// Income per second without temporary boosts or overclock, as the
+  /// player sees it: the managed lines, or every line while none is managed
+  /// yet. Used to size wheel prizes and time warps.
+  BigNumber steadyRate(GameState s) {
+    final steady = s.copyWith(
+      clearBoost: true,
+      meta: s.meta.copyWith(overclockSeconds: 0),
+    );
+    final passive = passiveIncomePerSecond(steady);
+    return passive.isZero ? fullRate(steady) : passive;
+  }
+
+  bool canAddOverclock(GameState s) =>
+      s.meta.overclockSeconds < _m.overclockMaxSeconds;
+
+  /// Adds [seconds] of overclock (one ad's worth by default), capped.
+  GameState addOverclock(GameState s, [double? seconds]) => s.copyWith(
+    meta: s.meta.copyWith(
+      overclockSeconds: math.min(
+        _m.overclockMaxSeconds,
+        s.meta.overclockSeconds + (seconds ?? _m.overclockSecondsPerAd),
+      ),
     ),
-    EventKind.cash => s.earn(fullRate(s).scale(event.value)),
+  );
+
+  /// A strong, short boost. Replaces a weaker running boost.
+  GameState applyBoost(GameState s, double multiplier, double seconds) {
+    final current = s.boost;
+    if (current != null &&
+        current.multiplier * current.secondsLeft > multiplier * seconds) {
+      return s;
+    }
+    return s.copyWith(
+      boost: Boost(multiplier: multiplier, secondsLeft: seconds),
+    );
+  }
+
+  GameState applyTurbo(GameState s) =>
+      applyBoost(s, _m.turboMultiplier, _m.turboSeconds);
+
+  /// Cash a time warp would pay right now.
+  BigNumber timeWarpValue(GameState s, TimeWarpConfig warp) =>
+      steadyRate(s).scale(warp.hours * 3600);
+
+  GameState? timeWarp(GameState s, TimeWarpConfig warp) {
+    if (s.meta.tokens < warp.tokens) return null;
+    return s
+        .earn(timeWarpValue(s, warp))
+        .copyWith(meta: s.meta.copyWith(tokens: s.meta.tokens - warp.tokens));
+  }
+
+  /// Cash still missing for [cost] when it is small enough for the
+  /// "get it now" ad, otherwise null.
+  BigNumber? nearMissing(GameState s, BigNumber cost) {
+    if (s.cash >= cost) return null;
+    final missing = cost - s.cash;
+    return missing <= cost.scale(_m.nearUpgradeMaxMissing) ? missing : null;
+  }
+
+  /// Gives cash without counting it as earned (it is not income).
+  GameState grantCash(GameState s, BigNumber amount) =>
+      s.copyWith(cash: s.cash + amount);
+
+  bool freeSpinReady(GameState s, int nowMs) =>
+      nowMs - s.meta.lastFreeSpinMs >= _m.wheel.freeEverySeconds * 1000;
+
+  /// Seconds until the next free spin (0 when ready).
+  double secondsToFreeSpin(GameState s, int nowMs) => math.max(
+    0,
+    _m.wheel.freeEverySeconds - (nowMs - s.meta.lastFreeSpinMs) / 1000,
+  );
+
+  int adSpinsLeft(GameState s, int day) => math.max(
+    0,
+    _m.wheel.adSpinsPerDay -
+        (s.meta.adSpinsDay == day ? s.meta.adSpinsUsed : 0),
+  );
+
+  /// Picks a wheel prize for [roll] in [0, 1), by weight.
+  int pickPrize(double roll) {
+    final prizes = _m.wheel.prizes;
+    final total = prizes.fold(0.0, (sum, p) => sum + p.weight);
+    var acc = 0.0;
+    for (var i = 0; i < prizes.length; i++) {
+      acc += prizes[i].weight / total;
+      if (roll < acc) return i;
+    }
+    return prizes.length - 1;
+  }
+
+  /// Cash a cash prize pays right now; at least $50 so the
+  /// very first spins still feel good.
+  BigNumber prizeCash(GameState s, WheelPrize prize) =>
+      steadyRate(s).scale(prize.value).max(BigNumber.from(50));
+
+  GameState applyPrize(GameState s, WheelPrize prize) => switch (prize.kind) {
+    WheelPrizeKind.cash => s.earn(prizeCash(s, prize)),
+    WheelPrizeKind.boost => applyBoost(s, prize.value, prize.seconds),
+    WheelPrizeKind.overclock => addOverclock(s, prize.value),
+    WheelPrizeKind.tokens => s.copyWith(
+      meta: s.meta.copyWith(tokens: s.meta.tokens + prize.value.round()),
+    ),
   };
+
+  /// Spins the wheel with [prizeIndex]: a free spin when ready, else an ad
+  /// spin if any are left today. Null if neither is possible.
+  GameState? spinWheel(
+    GameState s,
+    int prizeIndex, {
+    required bool free,
+    required int nowMs,
+    required int day,
+  }) {
+    final prize = _m.wheel.prizes[prizeIndex];
+    if (free) {
+      if (!freeSpinReady(s, nowMs)) return null;
+      final next = applyPrize(s, prize);
+      return next.copyWith(meta: next.meta.copyWith(lastFreeSpinMs: nowMs));
+    }
+    if (adSpinsLeft(s, day) <= 0) return null;
+    final used = s.meta.adSpinsDay == day ? s.meta.adSpinsUsed : 0;
+    final next = applyPrize(s, prize);
+    return next.copyWith(
+      meta: next.meta.copyWith(adSpinsDay: day, adSpinsUsed: used + 1),
+    );
+  }
+
+  /// Whether a one-time product is already owned.
+  bool ownsProduct(GameState s, ProductConfig product) =>
+      product.kind == ProductKind.nonConsumable &&
+      (!product.removesAds || s.meta.adsRemoved) &&
+      (product.incomeMultiplier <= 1 || s.meta.starterPack);
+
+  /// Grants a bought product. A restored one-time product that is already
+  /// owned grants nothing again.
+  GameState deliverProduct(GameState s, ProductConfig product) {
+    if (ownsProduct(s, product)) return s;
+    return s.copyWith(
+      meta: s.meta.copyWith(
+        tokens: s.meta.tokens + product.tokens,
+        adsRemoved: s.meta.adsRemoved || product.removesAds,
+        starterPack: s.meta.starterPack || product.incomeMultiplier > 1,
+      ),
+    );
+  }
 
   // -------------------------------------------------------------- actions
 
@@ -434,25 +608,40 @@ class EconomyEngine {
   /// long offline periods too. Manual lines complete at most one job and then
   /// wait for the next tap. Offline catch-up passes [countPlayTime] false.
   GameState tick(GameState s, double dt, {bool countPlayTime = true}) {
-    if (dt <= 0) return s;
-    // A boost that ends mid-tick only applies to its remaining seconds.
+    // Boosts and overclock that end mid-tick only apply to their remaining
+    // seconds, so the tick is split at each expiry.
+    var state = s;
+    var left = dt;
+    while (left > 0) {
+      var step = left;
+      final boost = state.boost;
+      if (boost != null && boost.secondsLeft < step) step = boost.secondsLeft;
+      final overclock = state.meta.overclockSeconds;
+      if (overclock > 0 && overclock < step) step = overclock;
+      state = _countDown(_advance(state, step, countPlayTime), step);
+      left -= step;
+    }
+    return state;
+  }
+
+  GameState _countDown(GameState s, double dt) {
+    var next = s;
     final boost = s.boost;
-    if (boost != null && dt > boost.secondsLeft) {
-      final boosted = _advance(s, boost.secondsLeft, countPlayTime);
-      return _advance(
-        boosted.copyWith(clearBoost: true),
-        dt - boost.secondsLeft,
-        countPlayTime,
+    if (boost != null) {
+      final left = boost.secondsLeft - dt;
+      next = left <= 1e-9
+          ? next.copyWith(clearBoost: true)
+          : next.copyWith(
+              boost: Boost(multiplier: boost.multiplier, secondsLeft: left),
+            );
+    }
+    if (s.meta.overclockSeconds > 0) {
+      final left = s.meta.overclockSeconds - dt;
+      next = next.copyWith(
+        meta: next.meta.copyWith(overclockSeconds: left <= 1e-9 ? 0 : left),
       );
     }
-    final next = _advance(s, dt, countPlayTime);
-    if (boost == null) return next;
-    final left = boost.secondsLeft - dt;
-    return left <= 0
-        ? next.copyWith(clearBoost: true)
-        : next.copyWith(
-            boost: Boost(multiplier: boost.multiplier, secondsLeft: left),
-          );
+    return next;
   }
 
   GameState _advance(GameState s, double dt, bool countPlayTime) {

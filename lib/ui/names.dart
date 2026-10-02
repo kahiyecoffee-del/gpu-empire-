@@ -1,4 +1,5 @@
 import '../core/economy_config.dart';
+import '../core/monetization.dart';
 import '../core/number_format.dart';
 import '../l10n/app_localizations.dart';
 
@@ -105,3 +106,26 @@ String eventTitle(AppLocalizations l10n, String id) => switch (id) {
 /// Formats a multiplier without a trailing `.0`: 2.0 -> `2`, 1.5 -> `1.5`.
 String formatMultiplier(double value) =>
     value == value.roundToDouble() ? value.toInt().toString() : '$value';
+
+String productName(AppLocalizations l10n, ProductConfig p) {
+  if (p.removesAds) return l10n.productRemoveAds;
+  if (p.incomeMultiplier > 1) return l10n.productStarter;
+  return l10n.productTokens('${p.tokens}');
+}
+
+String productBody(AppLocalizations l10n, ProductConfig p) {
+  if (p.removesAds) return l10n.productRemoveAdsBody;
+  if (p.incomeMultiplier > 1) return l10n.productStarterBody;
+  return l10n.productTokensBody;
+}
+
+/// Short label for a wheel segment.
+String prizeLabel(AppLocalizations l10n, WheelPrize p) => switch (p.kind) {
+  WheelPrizeKind.cash => l10n.prizeCashShort('${(p.value / 60).round()}'),
+  WheelPrizeKind.boost => l10n.prizeBoost(
+    formatMultiplier(p.value),
+    '${p.seconds.round()}',
+  ),
+  WheelPrizeKind.overclock => l10n.prizeOverclock('${(p.value / 60).round()}'),
+  WheelPrizeKind.tokens => l10n.prizeTokens('${p.value.round()}'),
+};

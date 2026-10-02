@@ -147,6 +147,41 @@ CONFIG = {
         {'id': 'dreamer', 'branch': 'automation', 'cost': 250, 'effect': 'offlineHours', 'value': 8, 'requires': 'auto_hire'},
     ],
     'locations': [location(l) for l in LOCATIONS],
+    'monetization': {
+        'ads': {
+            'overclockMultiplier': 2, 'overclockSecondsPerAd': 4 * 3600,
+            'overclockMaxSeconds': 12 * 3600,
+            'turboMultiplier': 5, 'turboSeconds': 120,
+            'offlineAdMultiplier': 3, 'eventAdMultiplier': 2,
+            'questAdMultiplier': 2, 'nearUpgradeMaxMissing': 0.25,
+            'interstitialGraceSeconds': 600, 'interstitialMinGapSeconds': 240,
+        },
+        'timeWarps': [
+            {'id': 'warp_1h', 'hours': 1, 'tokens': 20},
+            {'id': 'warp_4h', 'hours': 4, 'tokens': 60},
+        ],
+        'products': [
+            {'id': 'remove_ads', 'kind': 'nonConsumable', 'fallbackPrice': '$3.99', 'removesAds': True},
+            {'id': 'starter_pack', 'kind': 'nonConsumable', 'fallbackPrice': '$1.99', 'tokens': 100, 'incomeMultiplier': 2},
+            {'id': 'tokens_100', 'kind': 'consumable', 'fallbackPrice': '$0.99', 'tokens': 100},
+            {'id': 'tokens_600', 'kind': 'consumable', 'fallbackPrice': '$4.99', 'tokens': 600},
+            {'id': 'tokens_1400', 'kind': 'consumable', 'fallbackPrice': '$9.99', 'tokens': 1400},
+        ],
+        'wheel': {
+            'freeEverySeconds': 4 * 3600, 'adSpinsPerDay': 3,
+            # Cash prizes are seconds of income; boosts carry their duration.
+            'prizes': [
+                {'id': 'cash_small', 'kind': 'cash', 'value': 600, 'weight': 4},
+                {'id': 'boost_3x', 'kind': 'boost', 'value': 3, 'seconds': 60, 'weight': 3},
+                {'id': 'tokens_5', 'kind': 'tokens', 'value': 5, 'weight': 2},
+                {'id': 'cash_big', 'kind': 'cash', 'value': 1800, 'weight': 2},
+                {'id': 'overclock_1h', 'kind': 'overclock', 'value': 3600, 'weight': 2},
+                {'id': 'boost_2x', 'kind': 'boost', 'value': 2, 'seconds': 300, 'weight': 3},
+                {'id': 'cash_huge', 'kind': 'cash', 'value': 3600, 'weight': 1},
+                {'id': 'tokens_20', 'kind': 'tokens', 'value': 20, 'weight': 1},
+            ],
+        },
+    },
 }
 
 
@@ -161,7 +196,7 @@ def num(v):
 def inline(d):
     parts = []
     for k, v in d.items():
-        val = inline(v) if isinstance(v, dict) else (json.dumps(v) if isinstance(v, str) else num(v))
+        val = inline(v) if isinstance(v, dict) else (json.dumps(v) if isinstance(v, (str, bool)) else num(v))
         parts.append(f'"{k}": {val}')
     return '{ ' + ', '.join(parts) + ' }'
 
@@ -185,6 +220,21 @@ def dump(cfg):
     out.append('  "skills": [')
     out.append(',\n'.join('    ' + inline(s) for s in cfg['skills']))
     out.append('  ],')
+    mon = cfg['monetization']
+    out.append('  "monetization": {')
+    out.append(f'    "ads": {inline(mon["ads"])},')
+    for key in ('timeWarps', 'products'):
+        out.append(f'    "{key}": [')
+        out.append(',\n'.join('      ' + inline(x) for x in mon[key]))
+        out.append('    ],')
+    wheel = mon['wheel']
+    out.append('    "wheel": {')
+    out.append(f'      "freeEverySeconds": {num(wheel["freeEverySeconds"])}, "adSpinsPerDay": {num(wheel["adSpinsPerDay"])},')
+    out.append('      "prizes": [')
+    out.append(',\n'.join('        ' + inline(x) for x in wheel['prizes']))
+    out.append('      ]')
+    out.append('    }')
+    out.append('  },')
     out.append('  "locations": [')
     locs = []
     for loc in cfg['locations']:

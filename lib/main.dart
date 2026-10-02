@@ -12,8 +12,10 @@ import 'core/economy_engine.dart';
 import 'core/offline.dart';
 import 'core/quests.dart';
 import 'game/game_controller.dart';
+import 'game/monetization.dart';
 import 'game/session.dart';
 import 'services/music_service.dart';
+import 'services/platform_services.dart';
 import 'services/save_service.dart';
 import 'services/settings_service.dart';
 
@@ -46,6 +48,7 @@ Future<void> main() async {
     );
   }
 
+  final navigatorKey = GlobalKey<NavigatorState>();
   runApp(
     ProviderScope(
       overrides: [
@@ -56,8 +59,12 @@ Future<void> main() async {
         saveServiceProvider.overrideWithValue(saves),
         initialGameStateProvider.overrideWithValue(offline?.state),
         initialOfflineReportProvider.overrideWithValue(offline),
+        adServiceProvider.overrideWithValue(createAdService(navigatorKey)),
+        storeServiceProvider.overrideWithValue(
+          createStoreService(navigatorKey),
+        ),
       ],
-      child: const GpuEmpireApp(),
+      child: GpuEmpireApp(navigatorKey: navigatorKey),
     ),
   );
 }

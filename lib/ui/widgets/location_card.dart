@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
+import '../../game/monetization.dart';
 import '../../l10n/app_localizations.dart';
 import '../names.dart';
 import '../theme.dart';
@@ -114,6 +115,9 @@ class LocationCard extends ConsumerWidget {
         ],
       ),
     );
-    if (ok ?? false) ref.read(gameProvider.notifier).moveToNextLocation();
+    if (!(ok ?? false)) return;
+    if (ref.read(gameProvider.notifier).moveToNextLocation()) {
+      await ref.read(adsProvider).naturalBreak();
+    }
   }
 }

@@ -47,7 +47,14 @@ OfflineReport catchUp(
   }
   final cap = engine.offlineCapSeconds(state);
   final seconds = elapsed > cap ? cap : elapsed;
-  final next = engine.tick(state, seconds, countPlayTime: false);
+  var next = engine.tick(state, seconds, countPlayTime: false);
+  // Overclock runs on the wall clock, also beyond the offline cap.
+  if (elapsed > seconds && next.meta.overclockSeconds > 0) {
+    final left = next.meta.overclockSeconds - (elapsed - seconds);
+    next = next.copyWith(
+      meta: next.meta.copyWith(overclockSeconds: left > 0 ? left : 0),
+    );
+  }
   return OfflineReport(
     state: next,
     earned: next.cash - state.cash,

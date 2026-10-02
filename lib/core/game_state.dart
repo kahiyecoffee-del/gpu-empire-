@@ -85,14 +85,30 @@ class MetaState {
     this.ipoCount = 0,
     this.storyIndex = 0,
     this.lifetimeEarned = BigNumber.zero,
+    this.tokens = 0,
+    this.overclockSeconds = 0,
+    this.adsRemoved = false,
+    this.starterPack = false,
+    this.lastFreeSpinMs = 0,
+    this.adSpinsDay = 0,
+    this.adSpinsUsed = 0,
   });
 
+  // Fields added after save v3 default when missing, so no migration step
+  // is needed for them.
   factory MetaState.fromJson(Map<String, Object?> json) => MetaState(
     shares: BigNumber.parse(json['shares']! as String),
     skills: (json['skills']! as List<Object?>).cast<String>().toSet(),
     ipoCount: (json['ipoCount']! as num).toInt(),
     storyIndex: (json['storyIndex']! as num).toInt(),
     lifetimeEarned: BigNumber.parse(json['lifetimeEarned']! as String),
+    tokens: (json['tokens'] as num?)?.toInt() ?? 0,
+    overclockSeconds: (json['overclockSeconds'] as num?)?.toDouble() ?? 0,
+    adsRemoved: json['adsRemoved'] as bool? ?? false,
+    starterPack: json['starterPack'] as bool? ?? false,
+    lastFreeSpinMs: (json['lastFreeSpinMs'] as num?)?.toInt() ?? 0,
+    adSpinsDay: (json['adSpinsDay'] as num?)?.toInt() ?? 0,
+    adSpinsUsed: (json['adSpinsUsed'] as num?)?.toInt() ?? 0,
   );
 
   /// Unspent shares; each adds the configured income bonus.
@@ -106,18 +122,51 @@ class MetaState {
   final int storyIndex;
   final BigNumber lifetimeEarned;
 
+  /// GPU Tokens (premium currency).
+  final int tokens;
+
+  /// Remaining "GPU Overclock" time; counts down in real time, offline too.
+  final double overclockSeconds;
+
+  /// Bought "Remove ads".
+  final bool adsRemoved;
+
+  /// Bought the starter pack (permanent income multiplier).
+  final bool starterPack;
+
+  /// Wall-clock time of the last free wheel spin.
+  final int lastFreeSpinMs;
+
+  /// Day (yyyymmdd) the ad spin counter belongs to, and spins used that day.
+  final int adSpinsDay;
+  final int adSpinsUsed;
+
   MetaState copyWith({
     BigNumber? shares,
     Set<String>? skills,
     int? ipoCount,
     int? storyIndex,
     BigNumber? lifetimeEarned,
+    int? tokens,
+    double? overclockSeconds,
+    bool? adsRemoved,
+    bool? starterPack,
+    int? lastFreeSpinMs,
+    int? adSpinsDay,
+    int? adSpinsUsed,
   }) => MetaState(
     shares: shares ?? this.shares,
     skills: skills ?? this.skills,
     ipoCount: ipoCount ?? this.ipoCount,
     storyIndex: storyIndex ?? this.storyIndex,
     lifetimeEarned: lifetimeEarned ?? this.lifetimeEarned,
+    tokens: tokens ?? this.tokens,
+    overclockSeconds: overclockSeconds ?? this.overclockSeconds,
+    adsRemoved: adsRemoved ?? this.adsRemoved,
+    starterPack: starterPack ?? this.starterPack,
+    lastFreeSpinMs: lastFreeSpinMs ?? this.lastFreeSpinMs,
+    adSpinsDay: adSpinsDay ?? this.adSpinsDay,
+    adSpinsUsed: adSpinsUsed ?? this.adSpinsUsed,
   );
 
   Map<String, Object?> toJson() => {
@@ -126,6 +175,13 @@ class MetaState {
     'ipoCount': ipoCount,
     'storyIndex': storyIndex,
     'lifetimeEarned': lifetimeEarned.toJson(),
+    'tokens': tokens,
+    'overclockSeconds': overclockSeconds,
+    'adsRemoved': adsRemoved,
+    'starterPack': starterPack,
+    'lastFreeSpinMs': lastFreeSpinMs,
+    'adSpinsDay': adSpinsDay,
+    'adSpinsUsed': adSpinsUsed,
   };
 }
 

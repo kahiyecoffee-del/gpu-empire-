@@ -5,6 +5,7 @@ import '../../core/big_number.dart';
 import '../../core/economy_config.dart';
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
+import '../../game/monetization.dart';
 import '../../l10n/app_localizations.dart';
 import '../names.dart';
 import '../theme.dart';
@@ -184,8 +185,10 @@ class _IpoTab extends ConsumerWidget {
       ),
     );
     if (!(ok ?? false)) return;
-    ref.read(gameProvider.notifier).goPublic();
+    final gained = ref.read(gameProvider.notifier).goPublic();
+    final ads = ref.read(adsProvider);
     if (context.mounted) Navigator.pop(context);
+    if (gained != null) await ads.naturalBreak();
   }
 }
 

@@ -166,11 +166,12 @@ class QuestBook extends _QuestRules {
   QuestConfig? current(GameState s) =>
       s.meta.storyIndex < quests.length ? quests[s.meta.storyIndex] : null;
 
-  /// Pays the active story quest and moves on. Null if it is not complete.
-  GameState? claim(GameState s) {
+  /// Pays the active story quest (times [factor], e.g. after a rewarded ad)
+  /// and moves on. Null if it is not complete.
+  GameState? claim(GameState s, {double factor = 1}) {
     final q = current(s);
     if (q == null || !progress(s, q).isComplete) return null;
-    final earned = s.earn(reward(s, q));
+    final earned = s.earn(reward(s, q).scale(factor));
     return earned.copyWith(
       meta: earned.meta.copyWith(storyIndex: s.meta.storyIndex + 1),
     );
@@ -253,11 +254,11 @@ class ContractBook extends _QuestRules {
     );
   }
 
-  GameState? claim(GameState s, QuestConfig contract) {
+  GameState? claim(GameState s, QuestConfig contract, {double factor = 1}) {
     if (!progress(s, contract).isComplete) return null;
     return ensure(
       s
-          .earn(reward(s, contract))
+          .earn(reward(s, contract).scale(factor))
           .copyWith(contractIndex: s.contractIndex + 1, clearContract: true),
     );
   }
@@ -286,8 +287,10 @@ class QuestBoard {
   BigNumber reward(GameState s, QuestConfig q) => story.reward(s, q);
 
   /// Claims the displayed quest. Null if it is not complete.
-  GameState? claim(GameState s) {
+  GameState? claim(GameState s, {double factor = 1}) {
     final (quest, isContract) = active(s);
-    return isContract ? contracts.claim(s, quest) : story.claim(s);
+    return isContract
+        ? contracts.claim(s, quest, factor: factor)
+        : story.claim(s, factor: factor);
   }
 }

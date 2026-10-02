@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/offline.dart';
 import '../services/save_service.dart';
 import 'game_controller.dart';
+import 'monetization.dart';
 
 /// Offline earnings computed at app start. Overridden in `main`.
 final initialOfflineReportProvider = Provider<OfflineReport?>((ref) => null);
@@ -20,10 +21,17 @@ class OfflineReportController extends Notifier<OfflineReport?> {
   @override
   OfflineReport? build() {
     final initial = ref.watch(initialOfflineReportProvider);
-    return initial != null && initial.hasEarnings ? initial : null;
+    return initial != null && _worthShowing(initial) ? initial : null;
   }
 
-  void show(OfflineReport report) => state = report.hasEarnings ? report : null;
+  // Short absences (e.g. watching an ad) are paid silently.
+  bool _worthShowing(OfflineReport report) =>
+      report.hasEarnings &&
+      report.seconds >= ref.read(economyConfigProvider).offlineMinReportSeconds;
+
+  void show(OfflineReport report) {
+    if (_worthShowing(report)) state = report;
+  }
 
   void dismiss() => state = null;
 }
@@ -55,6 +63,11 @@ class _GameSessionState extends ConsumerState<GameSession> {
       if (!_away) unawaited(_save());
     });
     _lifecycle = AppLifecycleListener(onHide: _onHide, onShow: _onShow);
+    // Consent form, ad SDK and store start after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(ref.read(adServiceProvider).init());
+      unawaited(ref.read(storeProvider).init());
+    });
   }
 
   SaveService get _saves => ref.read(saveServiceProvider);

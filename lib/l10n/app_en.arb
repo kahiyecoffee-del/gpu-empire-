@@ -1008,5 +1008,287 @@
   "devSpawnEvent": "Spawn random event",
   "@devSpawnEvent": {
     "description": "Dev button that shows a random event now."
+  },
+  "boosts": "Boosts",
+  "@boosts": {
+    "description": "Button and sheet title for boosts and the shop."
+  },
+  "boostsTab": "Boosts",
+  "@boostsTab": {
+    "description": "Tab with ad boosts and time warps."
+  },
+  "shopTab": "Shop",
+  "@shopTab": {
+    "description": "Tab with store products."
+  },
+  "overclockTitle": "GPU Overclock",
+  "@overclockTitle": {
+    "description": "Name of the long ad boost."
+  },
+  "overclockBody": "×{multiplier} income for {hours}h per ad. Stacks up to {max}h, keeps running offline.",
+  "@overclockBody": {
+    "description": "Overclock description.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "overclockLeft": "Overclock {time}",
+  "@overclockLeft": {
+    "description": "Pill showing remaining overclock time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "overclockFull": "Full",
+  "@overclockFull": {
+    "description": "Overclock is at its maximum."
+  },
+  "turboTitle": "Turbo",
+  "@turboTitle": {
+    "description": "Name of the short ad boost."
+  },
+  "turboBody": "×{multiplier} income for {seconds} seconds.",
+  "@turboBody": {
+    "description": "Turbo description.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "watchAd": "Watch",
+  "@watchAd": {
+    "description": "Button to watch a rewarded ad."
+  },
+  "freeReward": "Free",
+  "@freeReward": {
+    "description": "Shown instead of Watch when ads are removed."
+  },
+  "adUnavailable": "No ad available right now. Try again in a moment.",
+  "@adUnavailable": {
+    "description": "Shown when a rewarded ad could not be loaded."
+  },
+  "tokensBalance": "{count} GPU Tokens",
+  "@tokensBalance": {
+    "description": "Token balance.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "timeWarpsTitle": "Time Warp",
+  "@timeWarpsTitle": {
+    "description": "Section title for time warps."
+  },
+  "timeWarpItem": "{hours}h of income",
+  "@timeWarpItem": {
+    "description": "A time warp option.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "timeWarpGain": "Get {amount} now",
+  "@timeWarpGain": {
+    "description": "What a time warp pays.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "timeWarpCost": "{tokens} Tokens",
+  "@timeWarpCost": {
+    "description": "Time warp price.",
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughTokens": "Not enough GPU Tokens. Get more in the Shop.",
+  "@notEnoughTokens": {
+    "description": "Shown when tokens are missing."
+  },
+  "productRemoveAds": "Remove Ads",
+  "@productRemoveAds": {
+    "description": "Product name."
+  },
+  "productRemoveAdsBody": "No more interstitial ads, and every ad reward becomes free.",
+  "@productRemoveAdsBody": {
+    "description": "Product description."
+  },
+  "productStarter": "Starter Pack",
+  "@productStarter": {
+    "description": "Product name."
+  },
+  "productStarterBody": "100 GPU Tokens + permanent ×2 income, kept through IPOs.",
+  "@productStarterBody": {
+    "description": "Product description."
+  },
+  "productTokens": "{count} GPU Tokens",
+  "@productTokens": {
+    "description": "Token pack name.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "productTokensBody": "Use tokens for Time Warps.",
+  "@productTokensBody": {
+    "description": "Token pack description."
+  },
+  "owned": "Owned",
+  "@owned": {
+    "description": "Product already bought."
+  },
+  "restorePurchases": "Restore purchases",
+  "@restorePurchases": {
+    "description": "Button to restore bought products."
+  },
+  "purchaseThanks": "Thank you! Your purchase was delivered.",
+  "@purchaseThanks": {
+    "description": "Shown after a purchase."
+  },
+  "privacyOptions": "Privacy options",
+  "@privacyOptions": {
+    "description": "Settings entry to change ad consent."
+  },
+  "privacyOptionsHint": "Change how ads may use your data.",
+  "@privacyOptionsHint": {
+    "description": "Subtitle for privacy options."
+  },
+  "offlineAdButton": "Watch ad ×{multiplier}",
+  "@offlineAdButton": {
+    "description": "Offline dialog: triple earnings for an ad.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "getItNow": "Get it",
+  "@getItNow": {
+    "description": "Ad button that pays the missing cash for a purchase."
+  },
+  "adDouble": "×{multiplier}",
+  "@adDouble": {
+    "description": "Ad button that multiplies a reward.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "wheel": "Lucky Wheel",
+  "@wheel": {
+    "description": "Wheel sheet title."
+  },
+  "wheelFreeSpin": "Free spin",
+  "@wheelFreeSpin": {
+    "description": "Button for the free wheel spin."
+  },
+  "wheelNextFree": "Next free spin in {time}",
+  "@wheelNextFree": {
+    "description": "Countdown to the next free spin.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "wheelAdSpin": "Spin ({left} left today)",
+  "@wheelAdSpin": {
+    "description": "Ad spin button.",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "wheelNoSpins": "No spins left today. Come back tomorrow!",
+  "@wheelNoSpins": {
+    "description": "No more ad spins."
+  },
+  "wheelWon": "You won: {prize}",
+  "@wheelWon": {
+    "description": "Wheel result.",
+    "placeholders": {
+      "prize": {
+        "type": "String"
+      }
+    }
+  },
+  "prizeCash": "{amount}",
+  "@prizeCash": {
+    "description": "Cash prize label.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "prizeCashShort": "{minutes} min cash",
+  "@prizeCashShort": {
+    "description": "Cash prize on the wheel.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "prizeBoost": "×{multiplier} for {seconds}s",
+  "@prizeBoost": {
+    "description": "Boost prize.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "prizeOverclock": "{minutes} min Overclock",
+  "@prizeOverclock": {
+    "description": "Overclock prize.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "prizeTokens": "{count} Tokens",
+  "@prizeTokens": {
+    "description": "Token prize.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "devAddTokens": "+100 GPU Tokens",
+  "@devAddTokens": {
+    "description": "Dev button."
+  },
+  "devFreeSpin": "Reset wheel timers",
+  "@devFreeSpin": {
+    "description": "Dev button."
   }
 }

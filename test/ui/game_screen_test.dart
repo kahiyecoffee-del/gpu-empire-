@@ -116,4 +116,40 @@ void main() {
     await tester.pump();
     expect(container.read(settingsProvider).musicOn, isFalse);
   });
+
+  testWidgets('an ad adds overclock from the boosts sheet', (tester) async {
+    final container = await pumpGame(tester);
+    await tester.tap(find.byKey(const ValueKey('boosts_button')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('ad_overclock')));
+    await tester.pump();
+    expect(container.read(gameProvider).meta.overclockSeconds, 4 * 3600);
+  });
+
+  testWidgets('the free wheel spin pays once', (tester) async {
+    final container = await pumpGame(tester);
+    await tester.tap(find.byKey(const ValueKey('wheel_button')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('wheel_free')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
+    expect(container.read(gameProvider).meta.lastFreeSpinMs, isNot(0));
+    expect(find.textContaining('You won'), findsOneWidget);
+    expect(find.byKey(const ValueKey('wheel_free')), findsNothing);
+  });
+
+  testWidgets('a finished quest can be doubled with an ad', (tester) async {
+    final container = await pumpGame(tester);
+    final game = container.read(gameProvider.notifier);
+    game.replace(container.read(gameProvider).copyWith(manualJobs: 5));
+    await tester.pump();
+    final before = container.read(gameProvider).cash;
+    await tester.tap(find.byKey(const ValueKey('ad_quest')));
+    await tester.pump();
+    final state = container.read(gameProvider);
+    expect(state.meta.storyIndex, 1);
+    expect(state.cash > before, isTrue);
+  });
 }

@@ -6,6 +6,7 @@ import '../core/big_number.dart';
 import '../core/economy_config.dart';
 import '../core/economy_engine.dart';
 import '../core/game_state.dart';
+import '../core/monetization.dart';
 import '../core/quests.dart';
 
 /// The loaded economy. Overridden in `main` once `economy.json` is read.
@@ -106,11 +107,11 @@ class GameController extends Notifier<GameState> {
 
   /// Collects the quest Max is showing. Returns the reward, or null if it
   /// is not done yet.
-  BigNumber? claimQuest() {
+  BigNumber? claimQuest({double factor = 1}) {
     final board = ref.read(questBoardProvider);
     final (quest, _) = board.active(state);
-    final reward = board.reward(state, quest);
-    final next = board.claim(state);
+    final reward = board.reward(state, quest).scale(factor);
+    final next = board.claim(state, factor: factor);
     if (next == null) return null;
     state = board.ensure(next);
     return reward;
@@ -130,8 +131,54 @@ class GameController extends Notifier<GameState> {
 
   bool buySkill(String id) => _apply(_engine.buySkill(state, id));
 
-  void collectEvent(EventConfig event) =>
-      state = _engine.applyEvent(state, event);
+  void collectEvent(EventConfig event, {double factor = 1}) =>
+      state = _engine.applyEvent(state, event, factor: factor);
+
+  // ---------------------------------------------------------- monetization
+
+  void addOverclock() => state = _engine.addOverclock(state);
+
+  void turbo() => state = _engine.applyTurbo(state);
+
+  bool timeWarp(TimeWarpConfig warp) => _apply(_engine.timeWarp(state, warp));
+
+  /// Pays extra offline earnings after the "watch ad" offer.
+  void addEarnings(BigNumber amount) => state = state.earn(amount);
+
+  /// "Get it now": tops up the missing cash, then buys the line levels.
+  bool buyLevelsWithGrant(int line, BuyMode mode) {
+    final o = offer(line, mode);
+    final missing = _engine.nearMissing(state, o.cost);
+    if (missing == null || !_engine.isAvailable(state, line)) return false;
+    return _apply(
+      _engine.buyLevels(_engine.grantCash(state, missing), line, o.count),
+    );
+  }
+
+  /// Spins the wheel; returns the prize won, or null if no spin is left.
+  WheelPrize? spinWheel(
+    int prizeIndex, {
+    required bool free,
+    required DateTime now,
+  }) {
+    final next = _engine.spinWheel(
+      state,
+      prizeIndex,
+      free: free,
+      nowMs: now.millisecondsSinceEpoch,
+      day: dayKey(now),
+    );
+    if (next == null) return null;
+    state = next;
+    return ref
+        .read(economyConfigProvider)
+        .monetization
+        .wheel
+        .prizes[prizeIndex];
+  }
+
+  void deliverProduct(ProductConfig product) =>
+      state = _engine.deliverProduct(state, product);
 
   GameState? _withContract(GameState? s) =>
       s == null ? null : ref.read(questBoardProvider).ensure(s);
@@ -141,6 +188,14 @@ class GameController extends Notifier<GameState> {
 
   // Developer menu helpers.
   void devAddCash(BigNumber amount) => state = state.earn(amount);
+
+  void devAddTokens() => state = state.copyWith(
+    meta: state.meta.copyWith(tokens: state.meta.tokens + 100),
+  );
+
+  void devResetWheel() => state = state.copyWith(
+    meta: state.meta.copyWith(lastFreeSpinMs: 0, adSpinsUsed: 0),
+  );
 
   void devReset() => state = ref
       .read(questBoardProvider)
@@ -152,6 +207,9 @@ class GameController extends Notifier<GameState> {
     return true;
   }
 }
+
+/// Local calendar day as yyyymmdd, for daily limits.
+int dayKey(DateTime t) => t.year * 10000 + t.month * 100 + t.day;
 
 /// Settings for the hidden developer menu.
 class DevSettings {

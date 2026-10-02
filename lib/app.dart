@@ -8,11 +8,15 @@ import 'ui/music_director.dart';
 import 'ui/theme.dart';
 
 class GpuEmpireApp extends StatelessWidget {
-  const GpuEmpireApp({super.key});
+  const GpuEmpireApp({super.key, this.navigatorKey});
+
+  /// Lets services show full-screen test ads and store dialogs.
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),

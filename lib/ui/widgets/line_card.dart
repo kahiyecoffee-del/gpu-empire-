@@ -6,9 +6,11 @@ import '../../core/game_state.dart';
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/ad_service.dart';
 import '../line_style.dart';
 import '../names.dart';
 import '../theme.dart';
+import 'ad_button.dart';
 import 'chunky_button.dart';
 import 'floating_gains.dart';
 import 'glass_card.dart';
@@ -347,7 +349,12 @@ class _BuyButton extends ConsumerWidget {
     final mode = ref.watch(buyModeProvider);
     final offer = ref.read(gameProvider.notifier).offer(index, mode);
     final l10n = AppLocalizations.of(context);
-    return SizedBox(
+    final state = ref.read(gameProvider);
+    final near =
+        !offer.affordable &&
+        ref.read(engineProvider).isAvailable(state, index) &&
+        ref.read(engineProvider).nearMissing(state, offer.cost) != null;
+    final buy = SizedBox(
       width: 88,
       child: ChunkyButton(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -374,6 +381,23 @@ class _BuyButton extends ConsumerWidget {
           ],
         ),
       ),
+    );
+    if (!near) return buy;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        buy,
+        const SizedBox(height: 4),
+        AdButton(
+          key: ValueKey('ad_get_$index'),
+          placement: AdPlacement.nearUpgrade,
+          compact: true,
+          label: l10n.getItNow,
+          onReward: () => ref
+              .read(gameProvider.notifier)
+              .buyLevelsWithGrant(index, ref.read(buyModeProvider)),
+        ),
+      ],
     );
   }
 }

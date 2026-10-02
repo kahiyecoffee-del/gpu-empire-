@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme.dart';
 import '../names.dart';
 import 'animated_money.dart';
+import 'boosts_sheet.dart';
 import 'chunky_button.dart';
 import 'icon_text.dart';
 
@@ -64,6 +65,17 @@ class StatusPanel extends ConsumerWidget {
                   text: l10n.boostActive(
                     formatMultiplier(boost.multiplier),
                     '${boost.secondsLeft.ceil()}',
+                  ),
+                ),
+              if (state.meta.overclockSeconds > 0)
+                GestureDetector(
+                  onTap: () => showBoostsSheet(context),
+                  child: _Pill(
+                    color: const Color(0xFFFF5CC8),
+                    icon: Icons.speed,
+                    text: l10n.overclockLeft(
+                      formatDuration(state.meta.overclockSeconds),
+                    ),
                   ),
                 ),
             ],

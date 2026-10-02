@@ -138,6 +138,12 @@ Firebase Analytics + Remote Config. Olaylar: oturum, hat açılması, yükseltme
 | 2026-10-02 | Rastgele olaylar (A2) | 3–5 dakikada bir, 25 sn içinde dokunulmalı: Viral ürün (×5, 20 sn), Yatırımcı ziyareti (45 sn gelir), GPU indirimi (×2, 120 sn), Hackathon (90 sn gelir). Ortalama ~+%30 ek gelir. |
 | 2026-10-02 | Görevler (A2) | Max'in 29 hikaye görevi bir kez oynanır (IPO'da sıfırlanmaz). Hikaye görevi bulunulan yerde yapılamıyorsa her tur üretilen "kontratlar" gelir (hat seviyesi / lokasyon kazancı). Ödüller bulunulan lokasyonun kazancına göre (%3–6). Kayıt formatı v3. |
 | 2026-10-02 | A2 tempo (simülatör) | Depo'ya taşınma 37. dk, ilk IPO 84. dk; 2. turda Depo ~24 dk, Kampüs ~53 dk. 3 saatlik oturumda "yapacak bir şey yok" en fazla 2 dk 17 sn. CI'daki tempo testi taşınma (30–50 dk) ve ilk IPO'yu (60–90 dk) da kontrol eder. |
+| 2026-10-02 | Fiyatlar (A3) | Reklamsız $3.99; Başlangıç paketi $1.99 (100 Token + kalıcı ×2 gelir, IPO'da korunur); Token paketleri $0.99/100, $4.99/600, $9.99/1400. Gerçek fiyatı mağaza gösterir; bu değerler test mağazası için. |
+| 2026-10-02 | GPU Token (A3) | Yalnızca Zaman Atlama için: 1 saatlik gelir = 20 Token, 4 saatlik = 60 Token. Gelir = ekranda görünen saniyelik gelir (geçici boost'lar sayılmaz). Çarktan az miktarda Token da çıkar. |
+| 2026-10-02 | Ödüllü reklamlar (A3) | GPU Overclock (reklam başı 4 saat ×2, en fazla 12 saat, çevrimdışıyken de işler); Turbo (×5, 2 dk); çevrimdışı kazanç ×3; olay ×2; görev ×2; "Hemen al" (fiyatın en fazla %25'i eksikse farkı verir, kazanç sayılmaz); şans çarkı. "Reklamsız" alan oyuncuya tüm ödüller reklamsız verilir. |
+| 2026-10-02 | Şans çarkı (A3) | 4 saatte bir ücretsiz, günde 3 reklamlı ek çevirme. 8 dilim: 10/30/60 dk nakit, ×3 60 sn, ×2 300 sn, 1 saat Overclock, 5 ve 20 Token. |
+| 2026-10-02 | Geçiş reklamı (A3) | Yalnızca taşınmada ve IPO sonrasında; oturumun ilk 10 dakikasında asla, iki tam ekran reklam arası en az 4 dk (ödüllü reklam da sayılır). Reklamsız'da hiç yok. |
+| 2026-10-02 | Reklam/satın alma altyapısı (A3) | `AdService` arayüzü: telefonda AdMob (`google_mobile_ads`) + Google UMP onay formu (GDPR), web'de sahte reklam ekranı. Şimdilik yalnızca Google'ın TEST reklam kimlikleri; gerçek kimlikler yayından önce eklenecek. Satın alma resmi `in_app_purchase` ile; web'de test mağazası (para çekilmez). Satın alınan ürün anında kaydedilir; tek seferlik ürünler geri yüklenince tekrar verilmez. |
 
 ---
 

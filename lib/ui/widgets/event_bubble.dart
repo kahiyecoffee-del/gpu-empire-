@@ -9,7 +9,9 @@ import '../../game/events.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../names.dart';
+import '../../services/ad_service.dart';
 import '../theme.dart';
+import 'ad_button.dart';
 
 /// A pulsing bubble for the active random event. Tapping it collects the
 /// reward; it fades away when the event expires.
@@ -26,6 +28,15 @@ class _EventBubbleState extends ConsumerState<EventBubble>
     vsync: this,
     duration: const Duration(milliseconds: 900),
   )..repeat(reverse: true);
+
+  EventConfig? _taken;
+
+  void _pay(double factor) {
+    final event = _taken;
+    _taken = null;
+    if (event == null) return;
+    ref.read(gameProvider.notifier).collectEvent(event, factor: factor);
+  }
 
   @override
   void dispose() {
@@ -116,6 +127,25 @@ class _EventBubbleState extends ConsumerState<EventBubble>
                         color: AppColors.background.withValues(alpha: 0.7),
                         fontSize: 10,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    AdButton(
+                      key: const ValueKey('ad_event'),
+                      placement: AdPlacement.event,
+                      compact: true,
+                      color: Colors.white,
+                      label: l10n.adDouble(
+                        formatMultiplier(
+                          engine.config.monetization.eventAdMultiplier,
+                        ),
+                      ),
+                      // Take the event now so it cannot expire during the
+                      // ad; pay it doubled after, or plain if skipped.
+                      onStart: () =>
+                          _taken = ref.read(eventProvider.notifier).take(),
+                      onReward: () =>
+                          _pay(engine.config.monetization.eventAdMultiplier),
+                      onSkipped: () => _pay(1),
                     ),
                   ],
                 ),

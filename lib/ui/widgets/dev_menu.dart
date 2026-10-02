@@ -71,6 +71,16 @@ class _DevMenu extends ConsumerWidget {
             onTap: () => game.devAddCash(ref.read(gameProvider).cash.scale(9)),
           ),
           ListTile(
+            leading: const Icon(Icons.memory),
+            title: Text(l10n.devAddTokens),
+            onTap: game.devAddTokens,
+          ),
+          ListTile(
+            leading: const Icon(Icons.casino),
+            title: Text(l10n.devFreeSpin),
+            onTap: game.devResetWheel,
+          ),
+          ListTile(
             leading: const Icon(Icons.delete_forever, color: AppColors.warning),
             title: Text(
               l10n.devReset,

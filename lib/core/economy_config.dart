@@ -1,4 +1,5 @@
 import 'big_number.dart';
+import 'monetization.dart';
 
 /// Typed view of `assets/config/economy.json`. Every balancing number lives in
 /// that file; the engine reads them only through these classes.
@@ -14,6 +15,7 @@ class EconomyConfig {
     this.skills = const [],
     this.events = const EventsConfig(),
     this.contracts = const ContractsConfig(),
+    this.monetization = const MonetizationConfig(),
   });
 
   factory EconomyConfig.fromJson(Map<String, Object?> json) {
@@ -44,6 +46,9 @@ class EconomyConfig {
       contracts: json['contracts'] == null
           ? const ContractsConfig()
           : ContractsConfig.fromJson(_map(json['contracts'])),
+      monetization: json['monetization'] == null
+          ? const MonetizationConfig()
+          : MonetizationConfig.fromJson(_map(json['monetization'])),
     );
   }
 
@@ -67,6 +72,7 @@ class EconomyConfig {
   final List<SkillConfig> skills;
   final EventsConfig events;
   final ContractsConfig contracts;
+  final MonetizationConfig monetization;
 
   SkillConfig skill(String id) => skills.firstWhere((s) => s.id == id);
 }

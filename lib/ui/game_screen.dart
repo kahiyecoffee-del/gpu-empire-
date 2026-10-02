@@ -6,9 +6,13 @@ import '../core/offline.dart';
 import '../game/game_controller.dart';
 import '../game/session.dart';
 import '../l10n/app_localizations.dart';
+import '../services/ad_service.dart';
 import '../services/settings_service.dart';
+import 'names.dart';
 import 'theme.dart';
+import 'widgets/ad_button.dart';
 import 'widgets/advisor_banner.dart';
+import 'widgets/boosts_sheet.dart';
 import 'widgets/chunky_button.dart';
 import 'widgets/dev_menu.dart';
 import 'widgets/event_bubble.dart';
@@ -20,6 +24,7 @@ import 'widgets/settings_sheet.dart';
 import 'widgets/status_panel.dart';
 import 'widgets/upgrades_sheet.dart';
 import 'widgets/icon_text.dart';
+import 'widgets/wheel_sheet.dart';
 
 /// Build identifier injected by CI (`--dart-define=BUILD_ID=<sha>`), so a
 /// tester can confirm they are looking at the latest deploy.
@@ -51,7 +56,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Future<void> _showOffline(OfflineReport report) async {
     final l10n = AppLocalizations.of(context);
-    final cap = ref.read(engineProvider).config.offlineMaxSeconds;
+    final engine = ref.read(engineProvider);
+    final cap = engine.offlineCapSeconds(report.state);
+    final multiplier = engine.config.monetization.offlineAdMultiplier;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -79,13 +86,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ],
         ),
         actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.background,
-            ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l10n.collect),
+          ),
+          AdButton(
+            key: const ValueKey('ad_offline'),
+            placement: AdPlacement.offline,
+            label: l10n.offlineAdButton(formatMultiplier(multiplier)),
+            onReward: () {
+              // The base amount is already paid; add the rest.
+              ref
+                  .read(gameProvider.notifier)
+                  .addEarnings(report.earned.scale(multiplier - 1));
+              Navigator.pop(context);
+            },
           ),
         ],
       ),
@@ -111,7 +126,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               child: Stack(
                 children: [
                   ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                    // Room at the bottom so the floating buttons never
+                    // cover the last card.
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 150),
                     itemCount: lineCount + 3,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, i) {
@@ -122,10 +139,93 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     },
                   ),
                   const Positioned(right: 12, bottom: 16, child: EventBubble()),
+                  const Positioned(left: 12, bottom: 16, child: _SideButtons()),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Round floating buttons for the lucky wheel and boosts.
+class _SideButtons extends ConsumerWidget {
+  const _SideButtons();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final overclock = ref.watch(
+      gameProvider.select((s) => s.meta.overclockSeconds > 0),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _RoundButton(
+          key: const ValueKey('wheel_button'),
+          icon: Icons.casino,
+          label: l10n.wheel,
+          color: const Color(0xFFFFC44D),
+          badge: ref.watch(freeSpinReadyProvider),
+          onTap: () => showWheelSheet(context),
+        ),
+        const SizedBox(height: 10),
+        _RoundButton(
+          key: const ValueKey('boosts_button'),
+          icon: Icons.bolt,
+          label: l10n.boosts,
+          color: const Color(0xFFFF5CC8),
+          badge: !overclock,
+          onTap: () => showBoostsSheet(context),
+        ),
+      ],
+    );
+  }
+}
+
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.badge,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool badge;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Badge(
+          isLabelVisible: badge,
+          smallSize: 12,
+          backgroundColor: AppColors.warning,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [Color.lerp(color, Colors.white, 0.35)!, color],
+              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+              boxShadow: [
+                BoxShadow(color: color.withValues(alpha: 0.55), blurRadius: 14),
+              ],
+            ),
+            child: Icon(icon, color: AppColors.background, size: 26),
+          ),
         ),
       ),
     );

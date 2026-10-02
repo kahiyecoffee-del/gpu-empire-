@@ -14,3 +14,8 @@ Aşama kapsamı dışında kalan fikirler. Bir fikir aşamaya alınınca `GAME_B
 - Lokasyonlar 4–6 (İzlanda Hiperölçek, Okyanus Altı, Yörünge): ekonomi üreticisine yeni satır eklemek yeterli; isimler, renk tonu ve hikaye görevleri gerekir.
 - Olaylar için "reklam izle, ödülü ×2" (Aşama 3).
 - IPO ekranında "şimdi IPO yaparsan geliri ne kadar hızlanır" önizlemesi (ör. "Garaj'ı 3 kat hızlı geçersin").
+- Satın alma makbuzlarını sunucuda doğrulama (Google Play Developer API / App Store Server API). Şimdilik cihazda teslim ediliyor; korsan ödemelere karşı yayından sonra eklenebilir.
+- Reklam izlerken müziği duraklatma (AdMob reklamlarının sesi oyunun müziğiyle çakışabilir).
+- Reklam ödüllerine "günlük seri" (art arda günlerde Overclock izleyene küçük ekstra).
+- Çark dilimlerine nadir "kostüm" ödülleri (Max için), mağazada kozmetikler.
+

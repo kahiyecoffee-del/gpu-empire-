@@ -9,9 +9,11 @@ import '../../core/economy_engine.dart';
 import '../../core/quests.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/ad_service.dart';
 import '../names.dart';
 import '../quest_texts.dart';
 import '../theme.dart';
+import 'ad_button.dart';
 import 'chunky_button.dart';
 import 'glass_card.dart';
 import 'max_avatar.dart';
@@ -32,12 +34,12 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
   (String, BigNumber)? _thanks;
   Timer? _thanksTimer;
 
-  void _claim() {
+  void _claim({double factor = 1}) {
     final game = ref.read(gameProvider.notifier);
     final (quest, isContract) = ref
         .read(questBoardProvider)
         .active(ref.read(gameProvider));
-    final reward = game.claimQuest();
+    final reward = game.claimQuest(factor: factor);
     if (reward == null) return;
     final l10n = AppLocalizations.of(context);
     _thanksTimer?.cancel();
@@ -117,7 +119,26 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
           ),
           if (complete && thanks == null) ...[
             const SizedBox(width: 8),
-            ChunkyButton(onPressed: _claim, child: Text(l10n.questClaim)),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ChunkyButton(onPressed: _claim, child: Text(l10n.questClaim)),
+                const SizedBox(height: 6),
+                AdButton(
+                  key: const ValueKey('ad_quest'),
+                  placement: AdPlacement.quest,
+                  compact: true,
+                  label: l10n.adDouble(
+                    formatMultiplier(
+                      engine.config.monetization.questAdMultiplier,
+                    ),
+                  ),
+                  onReward: () => _claim(
+                    factor: engine.config.monetization.questAdMultiplier,
+                  ),
+                ),
+              ],
+            ),
           ],
         ],
       ),

@@ -65,9 +65,15 @@ class EventController extends Notifier<ActiveEvent?> {
 
   /// Collects the active event, applying its reward.
   void collect() {
-    final active = state;
-    if (active == null) return;
-    ref.read(gameProvider.notifier).collectEvent(active.event);
+    final event = take();
+    if (event != null) ref.read(gameProvider.notifier).collectEvent(event);
+  }
+
+  /// Removes the active event without applying it, so it cannot expire
+  /// while the player watches an ad for the doubled reward.
+  EventConfig? take() {
+    final event = state?.event;
     state = null;
+    return event;
   }
 }
