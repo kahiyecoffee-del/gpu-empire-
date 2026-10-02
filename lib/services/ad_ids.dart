@@ -11,7 +11,7 @@ abstract final class AdIds {
 
   // Real ids (filled in from the AdMob console before release).
   static const _rewardedAndroid = 'ca-app-pub-4694724768236037/6135882052';
-  static const _interstitialAndroid = '';
+  static const _interstitialAndroid = 'ca-app-pub-4694724768236037/8347026706';
   static const _rewardedIos = '';
   static const _interstitialIos = '';
 
