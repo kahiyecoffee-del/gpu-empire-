@@ -7,6 +7,7 @@ import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme.dart';
 import 'animated_money.dart';
+import 'chunky_button.dart';
 import 'icon_text.dart';
 
 /// Cash counter, income rate and the power/cooling gauges.
@@ -22,26 +23,45 @@ class StatusPanel extends ConsumerWidget {
     final income = engine.passiveIncomePerSecond(state);
     final efficiency = engine.efficiency(state);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
       child: Column(
         children: [
           AnimatedMoney(
             value: state.cash,
-            style: textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+            style: textTheme.headlineLarge?.copyWith(
+              fontSize: 38,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              shadows: [
+                Shadow(
+                  color: AppColors.accent.withValues(alpha: 0.55),
+                  blurRadius: 18,
+                ),
+              ],
             ),
           ),
-          Text(
-            income.isZero
-                ? l10n.tapToRun
-                : l10n.cashPerSecond('\$${formatBig(income)}'),
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.accent),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.35),
+              ),
+            ),
+            child: IconText(
+              income.isZero ? Icons.touch_app : Icons.trending_up,
+              income.isZero
+                  ? l10n.tapToRun
+                  : l10n.cashPerSecond('\$${formatBig(income)}'),
+              style: textTheme.labelLarge?.copyWith(
+                color: AppColors.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           const SizedBox(height: 10),
           const Row(
@@ -51,26 +71,37 @@ class StatusPanel extends ConsumerWidget {
               Expanded(child: _InfraGauge(kind: InfraKind.cooling)),
             ],
           ),
-          if (efficiency < 1) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: IconText(
-                Icons.warning_amber_rounded,
-                l10n.throttled('${(efficiency * 100).floor()}'),
-                textAlign: TextAlign.center,
-                style: textTheme.labelMedium?.copyWith(
-                  color: AppColors.warning,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            child: efficiency < 1
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.warning.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: IconText(
+                        Icons.warning_amber_rounded,
+                        l10n.throttled('${(efficiency * 100).floor()}'),
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
         ],
       ),
     );
@@ -90,63 +121,114 @@ class _InfraGauge extends ConsumerWidget {
     final load = engine.load(state, kind);
     final cost = engine.infraCost(state, kind);
     final affordable = cost <= state.cash;
+    final power = kind == InfraKind.power;
+    final base = power ? const Color(0xFFFFC44D) : const Color(0xFF5CC8FF);
     final color = load > 1
         ? AppColors.warning
-        : (load > 0.85 ? const Color(0xFFFFB547) : AppColors.accent);
+        : (load > 0.85 ? const Color(0xFFFF9F2E) : base);
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(
+              base.withValues(alpha: 0.10),
+              const Color(0xFF141B36),
+            ),
+            const Color(0xFF0C1126),
+          ],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconText(
-            kind == InfraKind.power ? Icons.bolt : Icons.ac_unit,
-            kind == InfraKind.power ? l10n.power : l10n.cooling,
-            iconColor: color,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-          ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              l10n.capacityUsage(
-                formatPower(engine.demand(state, kind)),
-                formatPower(engine.capacity(state, kind)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  power ? Icons.bolt : Icons.ac_unit,
+                  size: 16,
+                  color: color,
+                ),
               ),
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
+              const SizedBox(width: 6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      power ? l10n.power : l10n.cooling,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.capacityUsage(
+                          formatPower(engine.demand(state, kind)),
+                          formatPower(engine.capacity(state, kind)),
+                        ),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: load.clamp(0.0, 1.0),
-              minHeight: 6,
-              backgroundColor: const Color(0xFF1B2240),
-              color: color,
+          Container(
+            height: 8,
+            decoration: BoxDecoration(
+              color: const Color(0xFF070B18),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: load.clamp(0.02, 1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    gradient: LinearGradient(
+                      colors: [color.withValues(alpha: 0.6), color],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.6),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
-            height: 30,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                foregroundColor: color,
-                side: BorderSide(
-                  color: affordable ? color : const Color(0xFF242C4A),
-                ),
-              ),
+            child: ChunkyButton(
+              color: base,
+              radius: 10,
+              padding: const EdgeInsets.symmetric(vertical: 4),
               onPressed: affordable
                   ? () => ref.read(gameProvider.notifier).buyInfra(kind)
                   : null,
@@ -154,10 +236,7 @@ class _InfraGauge extends ConsumerWidget {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   '${l10n.upgradeInfra} · \$${formatBig(cost)}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontSize: 12),
                 ),
               ),
             ),

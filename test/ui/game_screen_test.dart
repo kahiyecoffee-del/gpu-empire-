@@ -57,7 +57,10 @@ void main() {
   testWidgets('shows the first line and the tap hint', (tester) async {
     await pumpGame(tester);
     expect(find.text('Old GPU'), findsWidgets);
-    expect(find.text('Tap a rack to run a job'), findsOneWidget);
+    expect(
+      find.textContaining('Tap a rack to run a job', findRichText: true),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tapping a rack runs a job and earns money', (tester) async {

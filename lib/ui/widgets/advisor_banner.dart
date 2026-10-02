@@ -10,6 +10,8 @@ import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../quest_texts.dart';
 import '../theme.dart';
+import 'chunky_button.dart';
+import 'glass_card.dart';
 import 'max_avatar.dart';
 
 /// Max's speech bubble with the active side quest, its progress and reward.
@@ -79,55 +81,41 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: complete && thanks == null
-              ? AppColors.accent
-              : const Color(0xFF242C4A),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          MaxAvatar(excited: complete && thanks == null),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${l10n.advisorName} · ${l10n.advisorRole}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accentAlt,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+      child: GlassCard(
+        padding: const EdgeInsets.all(10),
+        tint: AppColors.accentAlt,
+        highlight: complete && thanks == null ? AppColors.accent : null,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            MaxAvatar(excited: complete && thanks == null),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${l10n.advisorName} · ${l10n.advisorRole}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accentAlt,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                _Typewriter(text: speech),
-                if (footer != null) ...[const SizedBox(height: 6), footer],
-              ],
-            ),
-          ),
-          if (complete && thanks == null) ...[
-            const SizedBox(width: 8),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.background,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                  const SizedBox(height: 2),
+                  _Typewriter(text: speech),
+                  if (footer != null) ...[const SizedBox(height: 6), footer],
+                ],
               ),
-              onPressed: _claim,
-              child: Text(l10n.questClaim),
             ),
+            if (complete && thanks == null) ...[
+              const SizedBox(width: 8),
+              ChunkyButton(onPressed: _claim, child: Text(l10n.questClaim)),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

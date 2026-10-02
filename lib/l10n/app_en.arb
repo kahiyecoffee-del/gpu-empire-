@@ -111,7 +111,7 @@
       }
     }
   },
-  "nextMilestone": "Lv {level}: income ×{multiplier}",
+  "nextMilestone": "Lv {level} → ×{multiplier}",
   "@nextMilestone": {
     "description": "Next milestone of a line.",
     "placeholders": {

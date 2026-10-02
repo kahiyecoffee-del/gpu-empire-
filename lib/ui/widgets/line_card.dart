@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/game_state.dart';
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../line_style.dart';
 import '../names.dart';
 import '../theme.dart';
-import 'server_rack.dart';
+import 'chunky_button.dart';
+import 'floating_gains.dart';
+import 'glass_card.dart';
 import 'icon_text.dart';
+import 'iso_rack.dart';
 
-/// One production line: rack art, progress, level and buy controls.
+/// Racks drawn for a line: one more at these levels.
+const _rackTiers = [10, 50];
+
+/// Jobs shorter than this do not get a floating "+$" label each (too busy).
+const _minLabelCycleSeconds = 0.4;
+
+/// One production line: isometric rack art, job progress, level and buy
+/// controls.
 class LineCard extends ConsumerStatefulWidget {
   const LineCard({super.key, required this.index});
 
@@ -23,8 +35,9 @@ class _LineCardState extends ConsumerState<LineCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _glow = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 450),
+    duration: const Duration(milliseconds: 500),
   );
+  final _gains = GlobalKey<FloatingGainsState>();
 
   @override
   void dispose() {
@@ -50,6 +63,9 @@ class _LineCardState extends ConsumerState<LineCard>
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.accent,
           duration: const Duration(seconds: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           content: IconText(
             Icons.celebration,
             l10n.milestoneReached(name, formatMultiplier(multiplier)),
@@ -62,74 +78,84 @@ class _LineCardState extends ConsumerState<LineCard>
       );
   }
 
+  /// Floats the job income up from the rack whenever a job completes.
+  void _onLineTick(LineState? before, LineState after) {
+    if (before == null) return;
+    final finishedManual = before.running && !after.running;
+    final wrapped = after.progress < before.progress && !finishedManual;
+    if (!finishedManual && !wrapped) return;
+    final state = ref.read(gameProvider);
+    final engine = ref.read(engineProvider);
+    if (engine.effectiveCycleSeconds(state, widget.index) <
+        _minLabelCycleSeconds) {
+      return;
+    }
+    _gains.currentState?.spawn(
+      '+\$${formatBig(engine.incomePerJob(state, widget.index))}',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    ref.listen(
-      gameProvider.select((s) => s.lines[widget.index].level),
-      (before, after) => _onLevelChanged(before ?? after, after),
-    );
+    final i = widget.index;
+    ref
+      ..listen(
+        gameProvider.select((s) => s.lines[i].level),
+        (before, after) => _onLevelChanged(before ?? after, after),
+      )
+      ..listen(gameProvider.select((s) => s.lines[i]), _onLineTick);
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
-    final i = widget.index;
     final line = state.lines[i];
+    final config = engine.config.lines[i];
+    final style = LineStyle.of(config.id);
 
     if (!line.isUnlocked) {
-      return engine.isAvailable(state, i)
-          ? _LockedCard(index: i, canUnlock: true)
-          : _LockedCard(index: i, canUnlock: false);
+      return _LockedCard(index: i, canUnlock: engine.isAvailable(state, i));
     }
 
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final config = engine.config.lines[i];
     final managed = engine.hasManager(state, i);
     final working = managed || line.running;
-    final cycle = engine.effectiveCycleSeconds(state, i);
     final progress = working ? line.progress / config.cycleSeconds : 0.0;
     final remaining = working
         ? (config.cycleSeconds - line.progress) / engine.efficiency(state)
-        : cycle;
+        : engine.effectiveCycleSeconds(state, i);
     final milestone = engine.nextMilestone(line.level);
     final manager = engine.config.managerForLine(config.id);
+    final racks = 1 + _rackTiers.where((t) => line.level >= t).length;
 
     return AnimatedBuilder(
       animation: _glow,
-      builder: (context, child) {
-        final t = 1 - _glow.value;
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Color.lerp(
-                const Color(0xFF242C4A),
-                AppColors.accent,
-                _glow.isAnimating ? t : 0,
-              )!,
-              width: 1.5,
-            ),
-          ),
-          child: child,
-        );
-      },
+      builder: (context, child) => GlassCard(
+        tint: style.glow,
+        padding: EdgeInsets.zero,
+        highlight: _glow.isAnimating
+            ? Color.lerp(style.glow, Colors.transparent, _glow.value)
+            : null,
+        child: child!,
+      ),
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          splashColor: style.glow.withValues(alpha: 0.15),
           onTap: () => ref.read(gameProvider.notifier).tap(i),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(6, 10, 12, 10),
             child: Row(
               children: [
-                SizedBox(
-                  width: 44,
-                  height: 64,
-                  child: ServerRack(
-                    units: (line.level ~/ 10 + 2).clamp(2, 6),
-                    active: working,
+                FloatingGains(
+                  key: _gains,
+                  color: style.led,
+                  child: SizedBox(
+                    width: 84,
+                    height: 92,
+                    child: IsoRack(style: style, racks: racks, active: working),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,46 +163,66 @@ class _LineCardState extends ConsumerState<LineCard>
                       Row(
                         children: [
                           Flexible(
-                            child: Text(
-                              lineName(l10n, config.id),
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                lineName(l10n, config.id),
+                                maxLines: 1,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          _Badge(text: l10n.levelShort('${line.level}')),
+                          _LevelBadge(
+                            text: l10n.levelShort('${line.level}'),
+                            color: style.glow,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 6),
                       _JobProgress(
                         value: progress.clamp(0.0, 1.0),
-                        label: '${remaining.toStringAsFixed(1)}s',
-                        highlight: working,
+                        label: working || !managed
+                            ? '${remaining.toStringAsFixed(1)}s'
+                            : '',
+                        color: style.glow,
+                        active: working,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         l10n.perJob(
                           '\$${formatBig(engine.incomePerJob(state, i))}',
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
                       if (milestone != null)
-                        Text(
+                        IconText(
+                          Icons.flag_rounded,
                           l10n.nextMilestone(
                             '${milestone.level}',
                             formatMultiplier(milestone.multiplier),
                           ),
+                          iconColor: style.led,
+                          maxLines: 1,
                           style: textTheme.labelSmall?.copyWith(
-                            color: AppColors.accentAlt,
+                            color: style.led,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       if (manager != null) ...[
-                        const SizedBox(height: 4),
-                        _ManagerRow(managerId: manager.id, owned: managed),
+                        const SizedBox(height: 6),
+                        _ManagerRow(
+                          managerId: manager.id,
+                          owned: managed,
+                          color: style.glow,
+                        ),
                       ],
                     ],
                   ),
@@ -196,56 +242,90 @@ class _JobProgress extends StatelessWidget {
   const _JobProgress({
     required this.value,
     required this.label,
-    required this.highlight,
+    required this.color,
+    required this.active,
   });
 
   final double value;
   final String label;
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: value,
-            minHeight: 16,
-            backgroundColor: const Color(0xFF0F1630),
-            color: highlight ? AppColors.accent : AppColors.textSecondary,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.text});
-
-  final String text;
+  final Color color;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      height: 18,
       decoration: BoxDecoration(
-        color: const Color(0xFF242C4A),
-        borderRadius: BorderRadius.circular(6),
+        color: const Color(0xFF0A0F22),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: value,
+              heightFactor: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(9),
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withValues(alpha: active ? 0.7 : 0.3),
+                      color.withValues(alpha: active ? 1 : 0.4),
+                    ],
+                  ),
+                  boxShadow: active
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              shadows: [Shadow(color: Colors.black, blurRadius: 3)],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelBadge extends StatelessWidget {
+  const _LevelBadge({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: Color.lerp(color, Colors.white, 0.4),
+        ),
       ),
     );
   }
@@ -263,18 +343,9 @@ class _BuyButton extends ConsumerWidget {
     final offer = ref.read(gameProvider.notifier).offer(index, mode);
     final l10n = AppLocalizations.of(context);
     return SizedBox(
-      width: 92,
-      child: FilledButton(
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.background,
-          disabledBackgroundColor: const Color(0xFF242C4A),
-          disabledForegroundColor: AppColors.textSecondary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      width: 88,
+      child: ChunkyButton(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         onPressed: offer.affordable
             ? () => ref.read(gameProvider.notifier).buyLevels(index, mode)
             : null,
@@ -283,11 +354,17 @@ class _BuyButton extends ConsumerWidget {
           children: [
             Text(
               l10n.buyButton('${offer.count}'),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
             ),
-            Text(
-              '\$${formatBig(offer.cost)}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '\$${formatBig(offer.cost)}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ],
         ),
@@ -297,10 +374,15 @@ class _BuyButton extends ConsumerWidget {
 }
 
 class _ManagerRow extends ConsumerWidget {
-  const _ManagerRow({required this.managerId, required this.owned});
+  const _ManagerRow({
+    required this.managerId,
+    required this.owned,
+    required this.color,
+  });
 
   final String managerId;
   final bool owned;
+  final Color color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -308,10 +390,13 @@ class _ManagerRow extends ConsumerWidget {
     final name = managerName(l10n, managerId);
     if (owned) {
       return IconText(
-        Icons.person,
+        Icons.verified,
         l10n.managerWorking(name),
+        iconColor: color,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: AppColors.accent),
+            ?.copyWith(color: AppColors.textPrimary),
       );
     }
     final engine = ref.watch(engineProvider);
@@ -319,27 +404,20 @@ class _ManagerRow extends ConsumerWidget {
         .firstWhere((m) => m.id == managerId)
         .cost;
     final affordable = ref.watch(gameProvider.select((s) => s.cash >= cost));
-    return SizedBox(
-      height: 28,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          foregroundColor: AppColors.accentAlt,
-          side: BorderSide(
-            color: affordable ? AppColors.accentAlt : const Color(0xFF242C4A),
-          ),
-        ),
-        onPressed: affordable
-            ? () => ref.read(gameProvider.notifier).buyManager(managerId)
-            : null,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: IconText(
-            Icons.person_add,
-            '${l10n.hireManager(name)} · \$${formatBig(cost)}',
-            maxLines: 1,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-          ),
+    return ChunkyButton(
+      color: AppColors.accentAlt,
+      radius: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      onPressed: affordable
+          ? () => ref.read(gameProvider.notifier).buyManager(managerId)
+          : null,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: IconText(
+          Icons.person_add,
+          '${l10n.hireManager(name)} · \$${formatBig(cost)}',
+          maxLines: 1,
+          style: const TextStyle(fontSize: 11),
         ),
       ),
     );
@@ -355,26 +433,35 @@ class _LockedCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
     final config = engine.config.lines[index];
+    final style = LineStyle.of(config.id);
     final textTheme = Theme.of(context).textTheme;
+    final offer = ref.read(gameProvider.notifier).offer(index, BuyMode.one);
     return Opacity(
-      opacity: canUnlock ? 1 : 0.45,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF242C4A)),
-        ),
+      opacity: canUnlock ? 1 : 0.5,
+      child: GlassCard(
+        tint: canUnlock ? style.glow : const Color(0xFF39415E),
+        padding: const EdgeInsets.fromLTRB(6, 8, 12, 8),
         child: Row(
           children: [
-            const SizedBox(
-              width: 44,
-              height: 64,
-              child: Icon(Icons.lock_outline, color: AppColors.textSecondary),
+            SizedBox(
+              width: 84,
+              height: 72,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  IsoRack(style: style, locked: true),
+                  const Icon(
+                    Icons.lock,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 6),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,47 +469,34 @@ class _LockedCard extends ConsumerWidget {
                   Text(
                     lineName(l10n, config.id),
                     style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
                     canUnlock
-                        ? '\$${formatBig(engine.levelCost(ref.watch(gameProvider), index, 1))}'
+                        ? '\$${formatBig(engine.levelCost(state, index, 1))}'
                         : l10n.lockedLine,
                     style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: canUnlock ? style.led : AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
             ),
-            if (canUnlock) _UnlockButton(index: index),
+            if (canUnlock)
+              ChunkyButton(
+                color: style.glow,
+                onPressed: offer.affordable
+                    ? () => ref
+                          .read(gameProvider.notifier)
+                          .buyLevels(index, BuyMode.one)
+                    : null,
+                child: Text(l10n.unlockButton),
+              ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _UnlockButton extends ConsumerWidget {
-  const _UnlockButton({required this.index});
-
-  final int index;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(gameProvider);
-    final offer = ref.read(gameProvider.notifier).offer(index, BuyMode.one);
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: AppColors.accentAlt,
-        foregroundColor: AppColors.background,
-        disabledBackgroundColor: const Color(0xFF242C4A),
-      ),
-      onPressed: offer.affordable
-          ? () => ref.read(gameProvider.notifier).buyLevels(index, BuyMode.one)
-          : null,
-      child: Text(AppLocalizations.of(context).unlockButton),
     );
   }
 }

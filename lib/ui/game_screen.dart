@@ -9,7 +9,9 @@ import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import 'theme.dart';
 import 'widgets/advisor_banner.dart';
+import 'widgets/chunky_button.dart';
 import 'widgets/dev_menu.dart';
+import 'widgets/game_background.dart';
 import 'widgets/line_card.dart';
 import 'widgets/settings_sheet.dart';
 import 'widgets/status_panel.dart';
@@ -95,21 +97,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
     final lineCount = ref.watch(engineProvider).config.lines.length;
     return Scaffold(
-      body: Column(
-        children: [
-          const _TopArea(),
-          const _Toolbar(),
-          const AdvisorBanner(),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-              itemCount: lineCount + 1,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) =>
-                  i < lineCount ? LineCard(index: i) : const _BuildLabel(),
+      backgroundColor: Colors.transparent,
+      body: GameBackground(
+        child: Column(
+          children: [
+            const _TopArea(),
+            const _Toolbar(),
+            const AdvisorBanner(),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                itemCount: lineCount + 1,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, i) =>
+                    i < lineCount ? LineCard(index: i) : const _BuildLabel(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -120,8 +125,28 @@ class _TopArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surface,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF1A2550),
+            AppColors.surface.withValues(alpha: 0.95),
+          ],
+        ),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: SafeArea(
         bottom: false,
         child: Stack(
@@ -155,26 +180,66 @@ class _Toolbar extends ConsumerWidget {
     final mode = ref.watch(buyModeProvider);
     final affordable = ref.watch(affordableUpgradesProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       child: Row(
         children: [
-          SegmentedButton<BuyMode>(
-            showSelectedIcon: false,
-            style: SegmentedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              selectedBackgroundColor: AppColors.accent,
-              selectedForegroundColor: AppColors.background,
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A0F22),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
-            segments: [
-              const ButtonSegment(value: BuyMode.one, label: Text('×1')),
-              const ButtonSegment(value: BuyMode.ten, label: Text('×10')),
-              ButtonSegment(value: BuyMode.max, label: Text(l10n.buyModeMax)),
-            ],
-            selected: {mode},
-            onSelectionChanged: (s) =>
-                ref.read(buyModeProvider.notifier).select(s.first),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (m, label) in [
+                  (BuyMode.one, '×1'),
+                  (BuyMode.ten, '×10'),
+                  (BuyMode.max, l10n.buyModeMax),
+                ])
+                  GestureDetector(
+                    onTap: () => ref.read(buyModeProvider.notifier).select(m),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(11),
+                        gradient: m == mode
+                            ? const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFF6BF0B4), AppColors.accent],
+                              )
+                            : null,
+                        boxShadow: m == mode
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.accent.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 10,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: m == mode
+                              ? AppColors.background
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
           const Spacer(),
           Flexible(
             flex: 4,
@@ -182,12 +247,20 @@ class _Toolbar extends ConsumerWidget {
               isLabelVisible: affordable > 0,
               label: Text('$affordable'),
               backgroundColor: AppColors.warning,
-              child: FilledButton.tonalIcon(
+              child: ChunkyButton(
+                color: const Color(0xFFB65CFF),
+                foreground: Colors.white,
                 onPressed: () => showUpgradesSheet(context),
-                icon: const Icon(Icons.rocket_launch, size: 18),
-                label: FittedBox(
+                child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(l10n.upgrades),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.rocket_launch, size: 18),
+                      const SizedBox(width: 6),
+                      Text(l10n.upgrades),
+                    ],
+                  ),
                 ),
               ),
             ),
