@@ -1338,5 +1338,13 @@
   "devAnalytics": "Analytics log",
   "@devAnalytics": {
     "description": "Dev menu entry showing logged analytics events."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings entry to choose the language."
+  },
+  "languageAutomatic": "Automatic (device)",
+  "@languageAutomatic": {
+    "description": "Language option that follows the device language."
   }
 }

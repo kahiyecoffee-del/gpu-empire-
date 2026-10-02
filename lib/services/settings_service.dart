@@ -10,6 +10,7 @@ class Settings {
     this.introSeen = false,
     this.tutorialDone = false,
     this.infraHintSeen = false,
+    this.language,
   });
 
   final bool musicOn;
@@ -24,18 +25,25 @@ class Settings {
   /// Whether the one-time "you are throttled" hint was shown.
   final bool infraHintSeen;
 
+  /// Chosen language tag (e.g. `de`, `zh_Hant`), or null to follow the
+  /// device.
+  final String? language;
+
   Settings copyWith({
     bool? musicOn,
     bool? sfxOn,
     bool? introSeen,
     bool? tutorialDone,
     bool? infraHintSeen,
+    String? language,
+    bool clearLanguage = false,
   }) => Settings(
     musicOn: musicOn ?? this.musicOn,
     sfxOn: sfxOn ?? this.sfxOn,
     introSeen: introSeen ?? this.introSeen,
     tutorialDone: tutorialDone ?? this.tutorialDone,
     infraHintSeen: infraHintSeen ?? this.infraHintSeen,
+    language: clearLanguage ? null : language ?? this.language,
   );
 }
 
@@ -55,6 +63,7 @@ class SettingsController extends Notifier<Settings> {
   static const _introKey = 'settings_intro_seen';
   static const _tutorialKey = 'settings_tutorial_done';
   static const _infraHintKey = 'settings_infra_hint_seen';
+  static const _languageKey = 'settings_language';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -67,6 +76,7 @@ class SettingsController extends Notifier<Settings> {
       introSeen: prefs.getBool(_introKey) ?? false,
       tutorialDone: prefs.getBool(_tutorialKey) ?? false,
       infraHintSeen: prefs.getBool(_infraHintKey) ?? false,
+      language: prefs.getString(_languageKey),
     );
   }
 
@@ -93,5 +103,17 @@ class SettingsController extends Notifier<Settings> {
   Future<void> setInfraHintSeen() async {
     state = state.copyWith(infraHintSeen: true);
     await _prefs.setBool(_infraHintKey, true);
+  }
+
+  /// Null follows the device language.
+  Future<void> setLanguage(String? tag) async {
+    state = tag == null
+        ? state.copyWith(clearLanguage: true)
+        : state.copyWith(language: tag);
+    if (tag == null) {
+      await _prefs.remove(_languageKey);
+    } else {
+      await _prefs.setString(_languageKey, tag);
+    }
   }
 }
