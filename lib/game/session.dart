@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/offline.dart';
 import '../services/save_service.dart';
+import 'analytics.dart';
 import 'game_controller.dart';
+import 'game_events.dart';
 import 'monetization.dart';
 
 /// Offline earnings computed at app start. Overridden in `main`.
@@ -63,6 +65,13 @@ class _GameSessionState extends ConsumerState<GameSession> {
       if (!_away) unawaited(_save());
     });
     _lifecycle = AppLifecycleListener(onHide: _onHide, onShow: _onShow);
+    ref.read(analyticsBridgeProvider);
+    final state = ref.read(gameProvider);
+    ref.read(gameEventsProvider).emit(GameEventType.sessionStart, {
+      'location': ref.read(engineProvider).location(state).id,
+      'ipos': state.meta.ipoCount,
+      'minutes': (state.playSeconds / 60).round(),
+    });
     // Consent form, ad SDK and store start after the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adServiceProvider).init());

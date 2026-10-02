@@ -8,6 +8,7 @@ import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ad_service.dart';
 import '../line_style.dart';
+import '../tutorial.dart';
 import '../names.dart';
 import '../theme.dart';
 import 'ad_button.dart';
@@ -36,16 +37,22 @@ class LineCard extends ConsumerStatefulWidget {
 }
 
 class _LineCardState extends ConsumerState<LineCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _glow = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 500),
   );
+  late final AnimationController _burst = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+  String _burstText = '';
   final _gains = GlobalKey<FloatingGainsState>();
 
   @override
   void dispose() {
     _glow.dispose();
+    _burst.dispose();
     super.dispose();
   }
 
@@ -57,32 +64,9 @@ class _LineCardState extends ConsumerState<LineCard>
         .where((m) => m.level > before && m.level <= after)
         .toList();
     if (crossed.isEmpty) return;
-    final l10n = AppLocalizations.of(context);
     final multiplier = crossed.fold(1.0, (p, m) => p * m.multiplier);
-    final name = lineName(
-      l10n,
-      engine.lineConfig(ref.read(gameProvider), widget.index).id,
-    );
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.accent,
-          duration: const Duration(seconds: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          content: IconText(
-            Icons.celebration,
-            l10n.milestoneReached(name, formatMultiplier(multiplier)),
-            style: const TextStyle(
-              color: AppColors.background,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      );
+    setState(() => _burstText = '×${formatMultiplier(multiplier)}!');
+    _burst.forward(from: 0);
   }
 
   /// Floats the job income up from the rack whenever a job completes.
@@ -110,6 +94,12 @@ class _LineCardState extends ConsumerState<LineCard>
         gameProvider.select((s) => s.lines[i].level),
         (before, after) => _onLevelChanged(before ?? after, after),
       )
+      ..listen(
+        gameProvider.select((s) => ref.read(engineProvider).hasManager(s, i)),
+        (before, after) {
+          if (before == false && after) _glow.forward(from: 0);
+        },
+      )
       ..listen(gameProvider.select((s) => s.lines[i]), _onLineTick);
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
@@ -133,7 +123,7 @@ class _LineCardState extends ConsumerState<LineCard>
     final manager = engine.managerFor(state, i);
     final racks = 1 + _rackTiers.where((t) => line.level >= t).length;
 
-    return AnimatedBuilder(
+    final card = AnimatedBuilder(
       animation: _glow,
       builder: (context, child) => GlassCard(
         tint: style.glow,
@@ -156,10 +146,17 @@ class _LineCardState extends ConsumerState<LineCard>
                 FloatingGains(
                   key: _gains,
                   color: style.led,
-                  child: SizedBox(
-                    width: 84,
-                    height: 92,
-                    child: IsoRack(style: style, racks: racks, active: working),
+                  child: KeyedSubtree(
+                    key: i == 0 ? TutorialKeys.rack : null,
+                    child: SizedBox(
+                      width: 84,
+                      height: 92,
+                      child: IsoRack(
+                        style: style,
+                        racks: racks,
+                        active: working,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -226,6 +223,7 @@ class _LineCardState extends ConsumerState<LineCard>
                       if (manager != null) ...[
                         const SizedBox(height: 6),
                         _ManagerRow(
+                          key: i == 0 ? TutorialKeys.manager : null,
                           manager: manager,
                           owned: managed,
                           color: style.glow,
@@ -242,7 +240,96 @@ class _LineCardState extends ConsumerState<LineCard>
         ),
       ),
     );
+    return Stack(
+      children: [
+        card,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: MilestoneBurst(
+              animation: _burst,
+              text: _burstText,
+              color: style.led,
+            ),
+          ),
+        ),
+      ],
+    );
   }
+}
+
+/// "×2!" popping out of the card when a milestone is reached, with an
+/// expanding ring.
+class MilestoneBurst extends StatelessWidget {
+  const MilestoneBurst({
+    super.key,
+    required this.animation,
+    required this.text,
+    required this.color,
+  });
+
+  final Animation<double> animation;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final t = animation.value;
+        if (!animation.isAnimating || t == 0) return const SizedBox.shrink();
+        final pop = Curves.elasticOut.transform((t / 0.6).clamp(0.0, 1.0));
+        final fade = t < 0.7 ? 1.0 : (1 - t) / 0.3;
+        return CustomPaint(
+          painter: _RingPainter(t, color),
+          child: Center(
+            child: Opacity(
+              opacity: fade.clamp(0.0, 1.0),
+              child: Transform.scale(
+                scale: 0.4 + 0.8 * pop,
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(color: color, blurRadius: 18),
+                      const Shadow(color: Colors.black, blurRadius: 4),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter(this.t, this.color);
+
+  final double t;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width * 0.6 * Curves.easeOut.transform(t);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 6 * (1 - t)
+        ..color = color.withValues(alpha: (1 - t) * 0.8),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) => old.t != t;
 }
 
 class _JobProgress extends StatelessWidget {
@@ -355,6 +442,7 @@ class _BuyButton extends ConsumerWidget {
         ref.read(engineProvider).isAvailable(state, index) &&
         ref.read(engineProvider).nearMissing(state, offer.cost) != null;
     final buy = SizedBox(
+      key: index == 0 ? TutorialKeys.buy : null,
       width: 88,
       child: ChunkyButton(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -404,6 +492,7 @@ class _BuyButton extends ConsumerWidget {
 
 class _ManagerRow extends ConsumerWidget {
   const _ManagerRow({
+    super.key,
     required this.manager,
     required this.owned,
     required this.color,

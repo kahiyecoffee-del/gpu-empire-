@@ -8,6 +8,7 @@ import '../services/mock_store_service.dart';
 import '../services/save_service.dart';
 import '../services/store_service.dart';
 import 'game_controller.dart';
+import 'game_events.dart';
 
 /// The ad network. Overridden in `main` per platform.
 final adServiceProvider = Provider<AdService>(
@@ -37,11 +38,19 @@ class AdsController {
 
   /// Plays a rewarded ad. True if the reward should be granted.
   Future<bool> watch(AdPlacement placement) async {
-    if (adsRemoved) return true;
+    final bus = _ref.read(gameEventsProvider);
+    final params = {'placement': placement.name};
+    if (adsRemoved) {
+      bus.emit(GameEventType.adRewardComplete, {...params, 'free': 1});
+      return true;
+    }
     if (_showing) return false;
     _showing = true;
+    bus.emit(GameEventType.adRewardStart, params);
     try {
-      return await _service.showRewarded(placement);
+      final watched = await _service.showRewarded(placement);
+      if (watched) bus.emit(GameEventType.adRewardComplete, params);
+      return watched;
     } finally {
       _showing = false;
       // A rewarded ad counts as a break too: no interstitial right after.
@@ -66,6 +75,7 @@ class AdsController {
     );
     if (!allowed || _showing) return;
     _showing = true;
+    _ref.read(gameEventsProvider).emit(GameEventType.adInterstitial);
     try {
       await _service.showInterstitial();
     } finally {

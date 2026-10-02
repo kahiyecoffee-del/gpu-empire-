@@ -10,6 +10,7 @@ import '../services/ad_service.dart';
 import '../services/settings_service.dart';
 import 'names.dart';
 import 'theme.dart';
+import 'tutorial.dart';
 import 'widgets/ad_button.dart';
 import 'widgets/advisor_banner.dart';
 import 'widgets/boosts_sheet.dart';
@@ -45,9 +46,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Max's greeting (first launch only), then any offline earnings from
     // app start, once the first frame is up.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final settings = ref.read(settingsProvider.notifier);
       if (!ref.read(settingsProvider).introSeen) {
         await showIntroDialog(context);
-        await ref.read(settingsProvider.notifier).markIntroSeen();
+        await settings.markIntroSeen();
+      }
+      // Players who are past the basics never see the tutorial.
+      final s = ref.read(gameProvider);
+      if (!ref.read(settingsProvider).tutorialDone &&
+          (s.managers.isNotEmpty ||
+              s.locationIndex > 0 ||
+              s.meta.ipoCount > 0)) {
+        await settings.setTutorialDone(done: true);
       }
       final report = ref.read(offlineReportProvider);
       if (report != null && mounted) await _showOffline(report);
@@ -116,35 +126,44 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final lineCount = ref.watch(gameProvider.select((s) => s.lines.length));
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: GameBackground(
-        locationIndex: ref.watch(gameProvider.select((s) => s.locationIndex)),
-        child: Column(
-          children: [
-            const _TopArea(),
-            const _Toolbar(),
-            Expanded(
-              child: Stack(
-                children: [
-                  ListView.separated(
-                    // Room at the bottom so the floating buttons never
-                    // cover the last card.
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 150),
-                    itemCount: lineCount + 3,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) {
-                      if (i == 0) return const AdvisorBanner();
-                      if (i == 1) return const LocationCard();
-                      if (i - 2 < lineCount) return LineCard(index: i - 2);
-                      return const _BuildLabel();
-                    },
-                  ),
-                  const Positioned(right: 12, bottom: 16, child: EventBubble()),
-                  const Positioned(left: 12, bottom: 16, child: _SideButtons()),
-                ],
-              ),
+      body: Stack(
+        children: [
+          Positioned.fill(child: _body(lineCount)),
+          const Positioned.fill(child: TutorialOverlay()),
+        ],
+      ),
+    );
+  }
+
+  Widget _body(int lineCount) {
+    return GameBackground(
+      locationIndex: ref.watch(gameProvider.select((s) => s.locationIndex)),
+      child: Column(
+        children: [
+          const _TopArea(),
+          const _Toolbar(),
+          Expanded(
+            child: Stack(
+              children: [
+                ListView.separated(
+                  // Room at the bottom so the floating buttons never
+                  // cover the last card.
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 150),
+                  itemCount: lineCount + 3,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) {
+                    if (i == 0) return const AdvisorBanner();
+                    if (i == 1) return const LocationCard();
+                    if (i - 2 < lineCount) return LineCard(index: i - 2);
+                    return const _BuildLabel();
+                  },
+                ),
+                const Positioned(right: 12, bottom: 16, child: EventBubble()),
+                const Positioned(left: 12, bottom: 16, child: _SideButtons()),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -160,6 +179,10 @@ class _SideButtons extends ConsumerWidget {
     final overclock = ref.watch(
       gameProvider.select((s) => s.meta.overclockSeconds > 0),
     );
+    // New players first learn the basics; the extras appear afterwards.
+    if (!ref.watch(settingsProvider.select((s) => s.tutorialDone))) {
+      return const SizedBox.shrink();
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

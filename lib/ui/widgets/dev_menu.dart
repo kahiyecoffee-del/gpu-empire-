@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/big_number.dart';
 import '../../game/events.dart';
+import '../../game/analytics.dart';
 import '../../game/game_controller.dart';
+import '../../services/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/save_service.dart';
 import '../theme.dart';
@@ -21,6 +23,7 @@ const devMenuTaps = 5;
 Future<void> showDevMenu(BuildContext context) => showModalBottomSheet<void>(
   context: context,
   backgroundColor: AppColors.surface,
+  isScrollControlled: true,
   builder: (context) => const _DevMenu(),
 );
 
@@ -35,8 +38,8 @@ class _DevMenu extends ConsumerWidget {
     final timeScale = ref.watch(devSettingsProvider).timeScale;
     final game = ref.read(gameProvider.notifier);
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: ListView(
+        shrinkWrap: true,
         children: [
           ListTile(
             title: IconText(
@@ -69,6 +72,11 @@ class _DevMenu extends ConsumerWidget {
             leading: const Icon(Icons.trending_up),
             title: Text(l10n.devMultiplyCash),
             onTap: () => game.devAddCash(ref.read(gameProvider).cash.scale(9)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.analytics),
+            title: Text(l10n.devAnalytics),
+            onTap: () => _showAnalytics(context, ref),
           ),
           ListTile(
             leading: const Icon(Icons.memory),
@@ -114,4 +122,35 @@ class _DevMenu extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showAnalytics(BuildContext context, WidgetRef ref) {
+  final service = ref.read(analyticsServiceProvider);
+  final events = service is DebugAnalyticsService
+      ? service.events
+      : const <LoggedEvent>[];
+  showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.surface,
+      title: Text(AppLocalizations.of(context).devAnalytics),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: ListView(
+          children: [
+            for (final e in events)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '${e.time.toIso8601String().substring(11, 19)}  '
+                  '${e.name} ${e.params.isEmpty ? '' : e.params}',
+                  style: const TextStyle(fontSize: 11),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

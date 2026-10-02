@@ -27,8 +27,12 @@ void main() {
   Future<ProviderContainer> pumpGame(
     WidgetTester tester, {
     bool introSeen = true,
+    bool tutorialDone = true,
   }) async {
-    SharedPreferences.setMockInitialValues({'settings_intro_seen': introSeen});
+    SharedPreferences.setMockInitialValues({
+      'settings_intro_seen': introSeen,
+      'settings_tutorial_done': tutorialDone,
+    });
     final prefs = await SharedPreferences.getInstance();
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
@@ -112,7 +116,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Music'), findsOneWidget);
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(Switch).first);
     await tester.pump();
     expect(container.read(settingsProvider).musicOn, isFalse);
   });
@@ -151,5 +155,42 @@ void main() {
     final state = container.read(gameProvider);
     expect(state.meta.storyIndex, 1);
     expect(state.cash > before, isTrue);
+  });
+
+  testWidgets('the tutorial walks through tap, buy and closes', (tester) async {
+    final container = await pumpGame(tester, tutorialDone: false);
+    await tester.pump();
+    expect(find.textContaining('Tap the rack'), findsOneWidget);
+    final game = container.read(gameProvider.notifier);
+    game.tap(0);
+    await tester.pump();
+    expect(find.textContaining('Keep tapping'), findsOneWidget);
+    game.devAddCash(BigNumber.from(10));
+    await tester.pump();
+    expect(find.textContaining('buy another rack'), findsOneWidget);
+    expect(game.buyLevels(0, BuyMode.one), isTrue);
+    await tester.pump();
+    // Quiet until the intern is affordable.
+    expect(find.byKey(const ValueKey('tutorial_bubble')), findsNothing);
+    game.devAddCash(BigNumber.from(5000));
+    await tester.pump();
+    expect(find.textContaining('hire the Intern'), findsOneWidget);
+    final intern = container
+        .read(engineProvider)
+        .managerFor(container.read(gameProvider), 0)!;
+    expect(game.buyManager(intern.id), isTrue);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('tutorial_ok')));
+    await tester.pump();
+    expect(container.read(settingsProvider).tutorialDone, isTrue);
+    expect(find.byKey(const ValueKey('tutorial_bubble')), findsNothing);
+  });
+
+  testWidgets('the tutorial can be skipped', (tester) async {
+    final container = await pumpGame(tester, tutorialDone: false);
+    await tester.pump();
+    await tester.tap(find.text('Skip'));
+    await tester.pump();
+    expect(container.read(settingsProvider).tutorialDone, isTrue);
   });
 }

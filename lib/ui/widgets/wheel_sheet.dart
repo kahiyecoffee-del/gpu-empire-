@@ -9,9 +9,12 @@ import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ad_service.dart';
+import '../../services/sfx_service.dart';
 import '../names.dart';
+import '../sfx_director.dart';
 import '../theme.dart';
 import 'ad_button.dart';
+import 'celebration_layer.dart';
 import 'chunky_button.dart';
 
 /// Wall clock for the wheel; overridable in tests.
@@ -103,6 +106,8 @@ class _WheelSheetState extends ConsumerState<_WheelSheet>
     });
     await _spin.forward(from: 0);
     if (!mounted) return;
+    playSfx(ref, Sfx.reward);
+    ref.read(celebrationProvider).celebrate(CelebrationSize.small);
     setState(() {
       _spinning = false;
       _result = l10n.wheelWon(label);

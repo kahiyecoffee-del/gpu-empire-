@@ -18,4 +18,7 @@ Aşama kapsamı dışında kalan fikirler. Bir fikir aşamaya alınınca `GAME_B
 - Reklam izlerken müziği duraklatma (AdMob reklamlarının sesi oyunun müziğiyle çakışabilir).
 - Reklam ödüllerine "günlük seri" (art arda günlerde Overclock izleyene küçük ekstra).
 - Çark dilimlerine nadir "kostüm" ödülleri (Max için), mağazada kozmetikler.
+- Ayarlara "Tutorial'ı tekrar oynat" ve dil seçeneği.
+- Titreşim (haptic) geri bildirimi: satın alma ve kilometre taşında hafif titreşim.
+- Tutorial'a ikinci hat ve altyapı adımları; ilk IPO'da Max'in açıklama turu.
 

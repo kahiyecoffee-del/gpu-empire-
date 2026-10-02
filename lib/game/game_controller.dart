@@ -8,6 +8,7 @@ import '../core/economy_engine.dart';
 import '../core/game_state.dart';
 import '../core/monetization.dart';
 import '../core/quests.dart';
+import 'game_events.dart';
 
 /// The loaded economy. Overridden in `main` once `economy.json` is read.
 final economyConfigProvider = Provider<EconomyConfig>(
@@ -68,6 +69,13 @@ class LineOffer {
 class GameController extends Notifier<GameState> {
   EconomyEngine get _engine => ref.read(engineProvider);
 
+  void _emit(GameEventType type, [Map<String, Object> params = const {}]) =>
+      ref.read(gameEventsProvider).emit(type, params);
+
+  String _lineId(int line) => _engine.lineConfig(state, line).id;
+
+  String get _locationId => _engine.location(state).id;
+
   @override
   GameState build() => ref
       .read(questBoardProvider)
@@ -78,7 +86,12 @@ class GameController extends Notifier<GameState> {
 
   void tick(double dt) => state = _engine.tick(state, dt);
 
-  void tap(int line) => state = _engine.tap(state, line);
+  void tap(int line) {
+    final next = _engine.tap(state, line);
+    if (identical(next, state)) return;
+    state = next;
+    _emit(GameEventType.tap);
+  }
 
   /// What the buy button of [line] offers in [mode].
   LineOffer offer(int line, BuyMode mode) {
@@ -96,14 +109,46 @@ class GameController extends Notifier<GameState> {
   }
 
   /// Returns true if the purchase went through.
-  bool buyLevels(int line, BuyMode mode) =>
-      _apply(_engine.buyLevels(state, line, offer(line, mode).count));
+  bool buyLevels(int line, BuyMode mode) => _applyLevels(
+    line,
+    _engine.buyLevels(state, line, offer(line, mode).count),
+  );
 
-  bool buyManager(String id) => _apply(_engine.buyManager(state, id));
+  /// Applies a level purchase and reports unlocks and milestones.
+  bool _applyLevels(int line, GameState? next) {
+    if (next == null) return false;
+    final before = state.lines[line].level;
+    final after = next.lines[line].level;
+    state = next;
+    final id = _lineId(line);
+    _emit(GameEventType.buyLevels, {'line': id, 'level': after});
+    if (before == 0) _emit(GameEventType.lineUnlock, {'line': id});
+    final crossed = _engine.config.milestones
+        .where((m) => m.level > before && m.level <= after)
+        .length;
+    if (crossed > 0) {
+      _emit(GameEventType.milestone, {'line': id, 'level': after});
+    }
+    return true;
+  }
 
-  bool buyUpgrade(String id) => _apply(_engine.buyUpgrade(state, id));
+  bool buyManager(String id) => _applyAnd(
+    _engine.buyManager(state, id),
+    GameEventType.hireManager,
+    {'manager': id},
+  );
 
-  bool buyInfra(InfraKind kind) => _apply(_engine.buyInfra(state, kind));
+  bool buyUpgrade(String id) => _applyAnd(
+    _engine.buyUpgrade(state, id),
+    GameEventType.buyUpgrade,
+    {'upgrade': id},
+  );
+
+  bool buyInfra(InfraKind kind) => _applyAnd(
+    _engine.buyInfra(state, kind),
+    GameEventType.buyInfra,
+    {'kind': kind.name},
+  );
 
   /// Collects the quest Max is showing. Returns the reward, or null if it
   /// is not done yet.
@@ -114,11 +159,25 @@ class GameController extends Notifier<GameState> {
     final next = board.claim(state, factor: factor);
     if (next == null) return null;
     state = board.ensure(next);
+    _emit(GameEventType.questClaim, {
+      'quest': quest.id,
+      'doubled': factor > 1 ? 1 : 0,
+    });
     return reward;
   }
 
-  bool moveToNextLocation() =>
-      _apply(_withContract(_engine.moveToNextLocation(state)));
+  bool moveToNextLocation() {
+    final from = _locationId;
+    final moved = _apply(_withContract(_engine.moveToNextLocation(state)));
+    if (moved) {
+      _emit(GameEventType.move, {
+        'from': from,
+        'to': _locationId,
+        'minutes': (state.playSeconds / 60).round(),
+      });
+    }
+    return moved;
+  }
 
   /// Goes public. Returns the shares gained, or null if none.
   BigNumber? goPublic() {
@@ -126,13 +185,26 @@ class GameController extends Notifier<GameState> {
     final next = _withContract(_engine.ipo(state));
     if (next == null) return null;
     state = next;
+    _emit(GameEventType.ipo, {
+      'count': state.meta.ipoCount,
+      'shares': gained.toDouble(),
+    });
     return gained;
   }
 
-  bool buySkill(String id) => _apply(_engine.buySkill(state, id));
+  bool buySkill(String id) => _applyAnd(
+    _engine.buySkill(state, id),
+    GameEventType.buySkill,
+    {'skill': id},
+  );
 
-  void collectEvent(EventConfig event, {double factor = 1}) =>
-      state = _engine.applyEvent(state, event, factor: factor);
+  void collectEvent(EventConfig event, {double factor = 1}) {
+    state = _engine.applyEvent(state, event, factor: factor);
+    _emit(GameEventType.eventCollect, {
+      'event': event.id,
+      'doubled': factor > 1 ? 1 : 0,
+    });
+  }
 
   // ---------------------------------------------------------- monetization
 
@@ -140,7 +212,11 @@ class GameController extends Notifier<GameState> {
 
   void turbo() => state = _engine.applyTurbo(state);
 
-  bool timeWarp(TimeWarpConfig warp) => _apply(_engine.timeWarp(state, warp));
+  bool timeWarp(TimeWarpConfig warp) => _applyAnd(
+    _engine.timeWarp(state, warp),
+    GameEventType.timeWarp,
+    {'warp': warp.id},
+  );
 
   /// Pays extra offline earnings after the "watch ad" offer.
   void addEarnings(BigNumber amount) => state = state.earn(amount);
@@ -150,7 +226,8 @@ class GameController extends Notifier<GameState> {
     final o = offer(line, mode);
     final missing = _engine.nearMissing(state, o.cost);
     if (missing == null || !_engine.isAvailable(state, line)) return false;
-    return _apply(
+    return _applyLevels(
+      line,
       _engine.buyLevels(_engine.grantCash(state, missing), line, o.count),
     );
   }
@@ -170,15 +247,20 @@ class GameController extends Notifier<GameState> {
     );
     if (next == null) return null;
     state = next;
-    return ref
+    final prize = ref
         .read(economyConfigProvider)
         .monetization
         .wheel
         .prizes[prizeIndex];
+    _emit(GameEventType.wheelSpin, {'prize': prize.id, 'free': free ? 1 : 0});
+    return prize;
   }
 
-  void deliverProduct(ProductConfig product) =>
-      state = _engine.deliverProduct(state, product);
+  void deliverProduct(ProductConfig product) {
+    final owned = _engine.ownsProduct(state, product);
+    state = _engine.deliverProduct(state, product);
+    if (!owned) _emit(GameEventType.purchase, {'product': product.id});
+  }
 
   GameState? _withContract(GameState? s) =>
       s == null ? null : ref.read(questBoardProvider).ensure(s);
@@ -200,6 +282,16 @@ class GameController extends Notifier<GameState> {
   void devReset() => state = ref
       .read(questBoardProvider)
       .ensure(GameState.initial(ref.read(economyConfigProvider)));
+
+  bool _applyAnd(
+    GameState? next,
+    GameEventType type,
+    Map<String, Object> params,
+  ) {
+    if (!_apply(next)) return false;
+    _emit(type, params);
+    return true;
+  }
 
   bool _apply(GameState? next) {
     if (next == null) return false;

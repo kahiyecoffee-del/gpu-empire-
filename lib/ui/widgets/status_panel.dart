@@ -7,6 +7,7 @@ import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme.dart';
 import '../names.dart';
+import '../tutorial.dart';
 import 'animated_money.dart';
 import 'boosts_sheet.dart';
 import 'chunky_button.dart';
@@ -81,8 +82,9 @@ class StatusPanel extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Row(
-            children: [
+          Row(
+            key: TutorialKeys.infra,
+            children: const [
               Expanded(child: _InfraGauge(kind: InfraKind.power)),
               SizedBox(width: 10),
               Expanded(child: _InfraGauge(kind: InfraKind.cooling)),

@@ -1290,5 +1290,53 @@
   "devFreeSpin": "Reset wheel timers",
   "@devFreeSpin": {
     "description": "Dev button."
+  },
+  "tutorialTap": "Tap the rack to run a job. Every job earns cash!",
+  "@tutorialTap": {
+    "description": "Tutorial: first tap."
+  },
+  "tutorialSave": "Nice! Keep tapping until you can afford another rack.",
+  "@tutorialSave": {
+    "description": "Tutorial: earn enough for a rack."
+  },
+  "tutorialBuy": "Now buy another rack. More racks, more cash per job!",
+  "@tutorialBuy": {
+    "description": "Tutorial: buy a level."
+  },
+  "tutorialManager": "You can hire the Intern! Managers run a line for you, even while you're away.",
+  "@tutorialManager": {
+    "description": "Tutorial: hire the first manager."
+  },
+  "tutorialDone": "That's the basics! Follow my quests up top and grow your empire.",
+  "@tutorialDone": {
+    "description": "Tutorial: closing message."
+  },
+  "tutorialInfra": "Uh-oh, your racks are throttled! Upgrade Power or Cooling to run at full speed again.",
+  "@tutorialInfra": {
+    "description": "One-time hint when production is throttled."
+  },
+  "tutorialLetsGo": "Let's go!",
+  "@tutorialLetsGo": {
+    "description": "Button closing the tutorial."
+  },
+  "tutorialGotIt": "Got it",
+  "@tutorialGotIt": {
+    "description": "Button closing a hint."
+  },
+  "tutorialSkip": "Skip",
+  "@tutorialSkip": {
+    "description": "Button skipping the tutorial."
+  },
+  "settingsSfx": "Sound effects",
+  "@settingsSfx": {
+    "description": "Settings toggle for sound effects."
+  },
+  "settingsSfxHint": "Taps, purchases and rewards",
+  "@settingsSfxHint": {
+    "description": "Subtitle for the sound effects toggle."
+  },
+  "devAnalytics": "Analytics log",
+  "@devAnalytics": {
+    "description": "Dev menu entry showing logged analytics events."
   }
 }

@@ -5,6 +5,8 @@ import 'l10n/app_localizations.dart';
 import 'ui/game_loop.dart';
 import 'ui/game_screen.dart';
 import 'ui/music_director.dart';
+import 'ui/sfx_director.dart';
+import 'ui/widgets/celebration_layer.dart';
 import 'ui/theme.dart';
 
 class GpuEmpireApp extends StatelessWidget {
@@ -25,7 +27,9 @@ class GpuEmpireApp extends StatelessWidget {
       // The game ships in English only for now (see GAME_BRIEF decision log).
       locale: const Locale('en'),
       // Above the navigator, so taps on dialogs also unlock audio.
-      builder: (context, child) => MusicDirector(child: child!),
+      builder: (context, child) => MusicDirector(
+        child: SfxDirector(child: CelebrationLayer(child: child!)),
+      ),
       home: const GameSession(child: GameLoop(child: GameScreen())),
     );
   }

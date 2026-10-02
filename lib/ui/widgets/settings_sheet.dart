@@ -47,6 +47,17 @@ class _SettingsSheet extends ConsumerWidget {
             onChanged: (on) =>
                 ref.read(settingsProvider.notifier).setMusic(on: on),
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.volume_up, color: AppColors.accent),
+            title: Text(l10n.settingsSfx),
+            subtitle: Text(
+              l10n.settingsSfxHint,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            value: settings.sfxOn,
+            onChanged: (on) =>
+                ref.read(settingsProvider.notifier).setSfx(on: on),
+          ),
           FutureBuilder<bool>(
             future: ref.read(adServiceProvider).privacyOptionsRequired(),
             builder: (context, snapshot) => snapshot.data ?? false
