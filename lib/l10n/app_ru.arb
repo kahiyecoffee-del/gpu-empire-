@@ -1,6 +1,6 @@
 {
   "@@locale": "ru",
-  "appTitle": "GPU Empire",
+  "appTitle": "AI Overlord",
   "buildInfo": "Сборка {version}",
   "lineLegacyGpu": "Старая GPU",
   "lineGamingCluster": "Игровой GPU-кластер",

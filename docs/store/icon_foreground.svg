@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="eye" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.25" stop-color="#FF8AE6"/>
+      <stop offset="0.6" stop-color="#FF2E9A"/>
+      <stop offset="1" stop-color="#7A0050"/>
+    </radialGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A4A7A"/>
+      <stop offset="1" stop-color="#141B36"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE38A"/>
+      <stop offset="1" stop-color="#FFB020"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- pins -->
+  <g fill="#3DDC97">
+    <rect x="352" y="250" width="34" height="70" rx="10"/><rect x="438" y="250" width="34" height="70" rx="10"/>
+    <rect x="552" y="250" width="34" height="70" rx="10"/><rect x="638" y="250" width="34" height="70" rx="10"/>
+    <rect x="352" y="704" width="34" height="70" rx="10"/><rect x="438" y="704" width="34" height="70" rx="10"/>
+    <rect x="552" y="704" width="34" height="70" rx="10"/><rect x="638" y="704" width="34" height="70" rx="10"/>
+    <rect x="250" y="352" width="70" height="34" rx="10"/><rect x="250" y="438" width="70" height="34" rx="10"/>
+    <rect x="250" y="552" width="70" height="34" rx="10"/><rect x="250" y="638" width="70" height="34" rx="10"/>
+    <rect x="704" y="352" width="70" height="34" rx="10"/><rect x="704" y="438" width="70" height="34" rx="10"/>
+    <rect x="704" y="552" width="70" height="34" rx="10"/><rect x="704" y="638" width="70" height="34" rx="10"/>
+  </g>
+  <!-- chip -->
+  <rect x="300" y="300" width="424" height="424" rx="64" fill="url(#chip)" stroke="#5CC8FF" stroke-width="14"/>
+  <!-- eye -->
+  <g filter="url(#glow)">
+    <path d="M362 512 Q512 372 662 512 Q512 652 362 512 Z" fill="#0B1020" stroke="#FF5CC8" stroke-width="12"/>
+    <circle cx="512" cy="512" r="78" fill="url(#eye)"/>
+    <circle cx="512" cy="512" r="26" fill="#0B1020"/>
+    <circle cx="536" cy="488" r="12" fill="#FFFFFF"/>
+  </g>
+  <!-- crown -->
+  <g filter="url(#glow)">
+    <path d="M392 236 L420 120 L470 190 L512 96 L554 190 L604 120 L632 236 Z" fill="url(#gold)" stroke="#B36B00" stroke-width="8" stroke-linejoin="round"/>
+    <circle cx="420" cy="118" r="16" fill="#FFE38A"/><circle cx="512" cy="94" r="18" fill="#FFE38A"/><circle cx="604" cy="118" r="16" fill="#FFE38A"/>
+  </g>
+</svg>

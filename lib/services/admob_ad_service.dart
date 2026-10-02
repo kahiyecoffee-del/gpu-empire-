@@ -1,22 +1,17 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'ad_ids.dart';
 import 'ad_service.dart';
 
 /// Google AdMob with the UMP consent flow.
 ///
-/// Uses Google's public TEST ad units only. The real ids are added before
-/// release.
+/// Ad unit ids come from [AdIds]: test units except in the store build.
 class AdMobAdService implements AdService {
-  static String get _rewardedId => Platform.isIOS
-      ? 'ca-app-pub-3940256099942544/1712485313'
-      : 'ca-app-pub-3940256099942544/5224354917';
+  static String get _rewardedId => AdIds.rewarded;
 
-  static String get _interstitialId => Platform.isIOS
-      ? 'ca-app-pub-3940256099942544/4411468910'
-      : 'ca-app-pub-3940256099942544/1033173712';
+  static String get _interstitialId => AdIds.interstitial;
 
   /// Waits between retries after a failed load (no fill, offline).
   static const _retryDelays = [10, 30, 60, 120, 300];

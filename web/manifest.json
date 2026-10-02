@@ -1,11 +1,11 @@
 {
-    "name": "GPU Empire",
-    "short_name": "GPU Empire",
+    "name": "AI Overlord: GPU Tycoon",
+    "short_name": "AI Overlord",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0B1020",
     "theme_color": "#0B1020",
-    "description": "GPU Empire - idle AI data center tycoon",
+    "description": "AI Overlord: GPU Tycoon - build the AI empire",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

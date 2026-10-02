@@ -88,3 +88,64 @@ jobs:
           name: gpu-empire-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+  play-bundle:
+    name: Build Play Store bundle (AAB)
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ADMOB_APP_ID: ${{ vars.ADMOB_APP_ID }}
+    steps:
+      - name: Check signing secrets
+        id: secrets
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::notice::Signing secrets not set yet; skipping the Play Store bundle."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ready == 'true'
+      - uses: actions/setup-java@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Write signing config
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<PROPS
+          storeFile=upload-keystore.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=upload
+          keyPassword=$KEYSTORE_PASSWORD
+          PROPS
+      - name: Build bundle
+        if: steps.secrets.outputs.ready == 'true'
+        # Store build: no developer menu, real ads, a version code that
+        # grows with every run.
+        run: >
+          flutter build appbundle --release
+          --build-number=$((100 + ${{ github.run_number }}))
+          --dart-define=BUILD_ID=${GITHUB_SHA::7}
+          --dart-define=PRODUCTION_ADS=true
+      - name: Remove signing files
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties
+      - uses: actions/upload-artifact@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          name: play-store-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
