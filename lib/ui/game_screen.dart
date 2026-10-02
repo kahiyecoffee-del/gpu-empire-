@@ -6,9 +6,12 @@ import '../core/offline.dart';
 import '../game/game_controller.dart';
 import '../game/session.dart';
 import '../l10n/app_localizations.dart';
+import '../services/settings_service.dart';
 import 'theme.dart';
+import 'widgets/advisor_banner.dart';
 import 'widgets/dev_menu.dart';
 import 'widgets/line_card.dart';
+import 'widgets/settings_sheet.dart';
 import 'widgets/status_panel.dart';
 import 'widgets/upgrades_sheet.dart';
 import 'widgets/icon_text.dart';
@@ -29,10 +32,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
-    // A report from app start is shown once the first frame is up.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Max's greeting (first launch only), then any offline earnings from
+    // app start, once the first frame is up.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!ref.read(settingsProvider).introSeen) {
+        await showIntroDialog(context);
+        await ref.read(settingsProvider.notifier).markIntroSeen();
+      }
       final report = ref.read(offlineReportProvider);
-      if (report != null) _showOffline(report);
+      if (report != null && mounted) await _showOffline(report);
     });
   }
 
@@ -91,6 +99,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         children: [
           const _TopArea(),
           const _Toolbar(),
+          const AdvisorBanner(),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
@@ -113,7 +122,26 @@ class _TopArea extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.surface,
-      child: const SafeArea(bottom: false, child: StatusPanel()),
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            const StatusPanel(),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                tooltip: AppLocalizations.of(context).settings,
+                icon: const Icon(
+                  Icons.settings,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: () => showSettingsSheet(context),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'big_number.dart';
 import 'economy_engine.dart';
 import 'game_state.dart';
+import 'quests.dart';
 
 /// How the simulated player behaves. These describe the bot, not the game,
 /// so they live here rather than in economy.json.
@@ -25,7 +26,7 @@ class SimSettings {
   final double snapshotInterval;
 }
 
-enum SimEventKind { purchase, lineUnlocked, manager, upgrade, infra }
+enum SimEventKind { purchase, lineUnlocked, manager, upgrade, infra, quest }
 
 class SimEvent {
   const SimEvent(this.time, this.kind, this.label, this.cost);
@@ -70,7 +71,8 @@ class SimResult {
   final GameState finalState;
   final double duration;
 
-  Iterable<double> get purchaseTimes => events.map((e) => e.time);
+  Iterable<double> get purchaseTimes =>
+      events.where((e) => e.kind != SimEventKind.quest).map((e) => e.time);
 
   BigNumber get totalSpent =>
       events.fold(BigNumber.zero, (sum, e) => sum + e.cost);
@@ -142,10 +144,17 @@ class _Candidate {
 /// afford it. Manual lines are tapped one at a time, so the bot also feels
 /// the value of managers.
 class Simulator {
-  const Simulator(this.engine, {this.settings = const SimSettings()});
+  const Simulator(
+    this.engine, {
+    this.settings = const SimSettings(),
+    this.questBook,
+  });
 
   final EconomyEngine engine;
   final SimSettings settings;
+
+  /// When given, the bot claims each side quest as soon as it is done.
+  final QuestBook? questBook;
 
   SimResult run({required double seconds, GameState? start}) {
     var s = start ?? GameState.initial(engine.config);
@@ -168,6 +177,18 @@ class Simulator {
         nextTap += settings.tapInterval;
       }
       if (t >= nextDecision) {
+        final book = questBook;
+        if (book != null) {
+          while (true) {
+            final quest = book.current(s);
+            final claimed = book.claim(s);
+            if (quest == null || claimed == null) break;
+            s = claimed;
+            events.add(
+              SimEvent(t, SimEventKind.quest, quest.id, BigNumber.zero),
+            );
+          }
+        }
         // Buy as long as the best option is affordable.
         while (true) {
           final best = _bestCandidate(s);

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gpuempire/core/economy_config.dart';
 import 'package:gpuempire/core/economy_engine.dart';
+import 'package:gpuempire/core/quests.dart';
 import 'package:gpuempire/core/simulator.dart';
 
 /// Guards the pacing targets from GAME_BRIEF.md against the real
@@ -13,7 +14,15 @@ void main() {
     jsonDecode(File('assets/config/economy.json').readAsStringSync())
         as Map<String, Object?>,
   );
-  final result = Simulator(EconomyEngine(config)).run(seconds: 30 * 60);
+  final engine = EconomyEngine(config);
+  final quests = QuestBook.parse(
+    jsonDecode(File('assets/config/quests.json').readAsStringSync())
+        as Map<String, Object?>,
+  );
+  final result = Simulator(
+    engine,
+    questBook: QuestBook(engine, quests),
+  ).run(seconds: 30 * 60);
   final startingLines = config.lines.where((l) => l.startLevel > 0).length;
 
   test('economy.json has six lines in unlock order', () {

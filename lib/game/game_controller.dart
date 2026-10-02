@@ -6,6 +6,7 @@ import '../core/big_number.dart';
 import '../core/economy_config.dart';
 import '../core/economy_engine.dart';
 import '../core/game_state.dart';
+import '../core/quests.dart';
 
 /// The loaded economy. Overridden in `main` once `economy.json` is read.
 final economyConfigProvider = Provider<EconomyConfig>(
@@ -17,6 +18,14 @@ final initialGameStateProvider = Provider<GameState?>((ref) => null);
 
 final engineProvider = Provider<EconomyEngine>(
   (ref) => EconomyEngine(ref.watch(economyConfigProvider)),
+);
+
+/// Side quests from `assets/config/quests.json`. Overridden in `main`.
+final questsConfigProvider = Provider<List<QuestConfig>>((ref) => const []);
+
+final questBookProvider = Provider<QuestBook>(
+  (ref) =>
+      QuestBook(ref.watch(engineProvider), ref.watch(questsConfigProvider)),
 );
 
 final gameProvider = NotifierProvider<GameController, GameState>(
@@ -83,6 +92,19 @@ class GameController extends Notifier<GameState> {
   bool buyUpgrade(String id) => _apply(_engine.buyUpgrade(state, id));
 
   bool buyInfra(InfraKind kind) => _apply(_engine.buyInfra(state, kind));
+
+  /// Collects the finished side quest. Returns the reward, or null if the
+  /// active quest is not done yet.
+  BigNumber? claimQuest() {
+    final book = ref.read(questBookProvider);
+    final quest = book.current(state);
+    if (quest == null) return null;
+    final reward = book.reward(state, quest);
+    final next = book.claim(state);
+    if (next == null) return null;
+    state = next;
+    return reward;
+  }
 
   /// Replaces the whole state, e.g. after offline catch-up or a reset.
   void replace(GameState next) => state = next;

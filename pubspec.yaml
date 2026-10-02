@@ -36,6 +36,7 @@ dependencies:
   intl: any
   flutter_localizations:
     sdk: flutter
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +63,7 @@ flutter:
 
   assets:
     - assets/config/
+    - assets/audio/
 
   fonts:
     - family: Inter

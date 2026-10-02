@@ -126,6 +126,10 @@ Firebase Analytics + Remote Config. Olaylar: oturum, hat açılması, yükseltme
 | 2026-10-02 | "Yapacak bir şey yok" ölçütü | Simülatörde: geliri en az %1 artıracak, alınabilir hiçbir şey olmaması. Hedef ≤ 3 dk; CI'daki tempo testi ilk 30 dakika için bunu zorunlu kılar. |
 | 2026-10-02 | Geliştirici menüsü | Sürüm etiketine 5 dokunuş: zaman ×10, +$1M, para ×10, kaydı sıfırla. Debug ve CI test derlemelerinde açık (`DEV_MENU=true`), mağaza sürümünde kapalı olacak. |
 | 2026-10-02 | İkonlar | Web'de emoji fontu indirme gerektirdiği için arayüzde emoji yerine Material ikonları kullanılır. |
+| 2026-10-02 | Dil | Oyun şimdilik **yalnızca İngilizce** açılır (cihaz dili ne olursa olsun). Türkçe çeviri dosyası repoda duruyor ama yeni metinler çevrilmedi; ileride ayarlara dil seçeneği olarak eklenebilir. |
+| 2026-10-02 | Müzik | Arka planda tatlı, döngüsel bir müzik (C majör, 92 BPM, ~42 sn döngü). Lisans derdi olmasın diye kodla sentezlendi (`tool/music/compose.py`). Ayarlar'dan kapatılabilir; tarayıcı kuralları gereği ilk dokunuşta başlar. Paket: `audioplayers`. |
+| 2026-10-02 | Danışman karakter: Max | Kıvırcık saçlı, gözlüklü CTO "Max". Kodla çizilmiş avatar, ilk açılışta karşılama, ekranda sürekli görünen konuşma balonu. |
+| 2026-10-02 | Yan görevler | Max sırayla 24 yan görev verir (`assets/config/quests.json`). Ödül = bu tur kazanılan toplamın %5–10'u (alt sınırlı), böylece ödüller ekonomiyle ölçeklenir ama katlanarak büyümez. Simülatör görevleri de oynar. Aşama 3'te "reklam izle, ödülü ×2 al" eklenecek. Kayıt formatı v2'ye geçti (eski kayıtlar otomatik dönüştürülür). |
 
 ---
 

@@ -242,6 +242,7 @@ class EconomyEngine {
     if (dt <= 0) return s;
     final speed = efficiency(s);
     var earned = BigNumber.zero;
+    var manualJobs = 0;
     List<LineState>? lines;
     for (var i = 0; i < s.lines.length; i++) {
       final l = s.lines[i];
@@ -261,6 +262,7 @@ class EconomyEngine {
         earned += incomePerJob(s, i);
         progress = 0;
         running = false;
+        manualJobs++;
       }
       lines ??= [...s.lines];
       lines[i] = l.copyWith(progress: progress, running: running);
@@ -270,6 +272,7 @@ class EconomyEngine {
       totalEarned: s.totalEarned + earned,
       lines: lines,
       playSeconds: countPlayTime ? s.playSeconds + dt : null,
+      manualJobs: manualJobs > 0 ? s.manualJobs + manualJobs : null,
     );
   }
 }

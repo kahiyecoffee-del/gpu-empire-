@@ -47,6 +47,8 @@ class GameState {
     this.powerLevel = 0,
     this.coolingLevel = 0,
     this.playSeconds = 0,
+    this.questIndex = 0,
+    this.manualJobs = 0,
   });
 
   factory GameState.initial(EconomyConfig config) => GameState(
@@ -73,6 +75,8 @@ class GameState {
       powerLevel: (json['powerLevel']! as num).toInt(),
       coolingLevel: (json['coolingLevel']! as num).toInt(),
       playSeconds: (json['playSeconds']! as num).toDouble(),
+      questIndex: (json['questIndex']! as num).toInt(),
+      manualJobs: (json['manualJobs']! as num).toInt(),
     );
   }
 
@@ -95,6 +99,12 @@ class GameState {
   /// Active play time this run, in seconds.
   final double playSeconds;
 
+  /// Index of the advisor's active side quest.
+  final int questIndex;
+
+  /// Jobs completed by tapping, for quests.
+  final int manualJobs;
+
   GameState copyWith({
     BigNumber? cash,
     BigNumber? totalEarned,
@@ -104,6 +114,8 @@ class GameState {
     int? powerLevel,
     int? coolingLevel,
     double? playSeconds,
+    int? questIndex,
+    int? manualJobs,
   }) => GameState(
     cash: cash ?? this.cash,
     totalEarned: totalEarned ?? this.totalEarned,
@@ -113,6 +125,8 @@ class GameState {
     powerLevel: powerLevel ?? this.powerLevel,
     coolingLevel: coolingLevel ?? this.coolingLevel,
     playSeconds: playSeconds ?? this.playSeconds,
+    questIndex: questIndex ?? this.questIndex,
+    manualJobs: manualJobs ?? this.manualJobs,
   );
 
   GameState withLine(int index, LineState line) =>
@@ -130,5 +144,7 @@ class GameState {
     'powerLevel': powerLevel,
     'coolingLevel': coolingLevel,
     'playSeconds': playSeconds,
+    'questIndex': questIndex,
+    'manualJobs': manualJobs,
   };
 }

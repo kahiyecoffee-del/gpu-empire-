@@ -270,5 +270,267 @@
   "confirm": "Delete",
   "@confirm": {
     "description": "Confirm button for destructive actions."
+  },
+  "advisorName": "Max",
+  "@advisorName": {
+    "description": "Name of the advisor character (the player's CTO)."
+  },
+  "advisorRole": "Your CTO",
+  "@advisorRole": {
+    "description": "Subtitle under the advisor's name."
+  },
+  "introTitle": "Meet Max",
+  "@introTitle": {
+    "description": "Title of the first-launch dialog."
+  },
+  "introBody": "Hey boss! I'm Max, your CTO. We've got one dusty GPU in a garage and a dream: the biggest AI data center empire on the planet. I'll send you side quests along the way. Ready?",
+  "@introBody": {
+    "description": "First-launch greeting from Max."
+  },
+  "introButton": "Let's build!",
+  "@introButton": {
+    "description": "Button that closes the first-launch dialog."
+  },
+  "questReward": "Reward: {amount}",
+  "@questReward": {
+    "description": "Reward line on a quest card.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "questProgress": "{current} / {goal}",
+  "@questProgress": {
+    "description": "Progress counter on a quest card.",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "questClaim": "Claim",
+  "@questClaim": {
+    "description": "Button that collects a finished quest's reward."
+  },
+  "questClaimed": "+{amount}",
+  "@questClaimed": {
+    "description": "Floating text after claiming a quest reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "allQuestsDone": "You're crushing it, boss! I'm cooking up new plans. Stay tuned.",
+  "@allQuestsDone": {
+    "description": "Shown when every quest is done."
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Title of the settings panel."
+  },
+  "settingsMusic": "Music",
+  "@settingsMusic": {
+    "description": "Toggle for background music."
+  },
+  "settingsMusicHint": "Relaxing background tunes",
+  "@settingsMusicHint": {
+    "description": "Subtitle under the music toggle."
+  },
+  "questQ01Ask": "Hey boss! Tap the Old GPU to run 5 jobs. Let's see if it still works.",
+  "@questQ01Ask": {
+    "description": "Max asks for quest q01."
+  },
+  "questQ01Done": "It lives! A bit wheezy, but it lives.",
+  "@questQ01Done": {
+    "description": "Max's thank-you line after quest q01."
+  },
+  "questQ02Ask": "Buy more racks until the Old GPU hits level 10.",
+  "@questQ02Ask": {
+    "description": "Max asks for quest q02."
+  },
+  "questQ02Done": "Look at all that blinking. Beautiful.",
+  "@questQ02Done": {
+    "description": "Max's thank-you line after quest q02."
+  },
+  "questQ03Ask": "Gamers have GPUs lying around. Unlock a Gaming GPU Cluster!",
+  "@questQ03Ask": {
+    "description": "Max asks for quest q03."
+  },
+  "questQ03Done": "RGB lighting adds 10% speed. Probably.",
+  "@questQ03Done": {
+    "description": "Max's thank-you line after quest q03."
+  },
+  "questQ04Ask": "The fuse box is crying. Upgrade Power to level 2.",
+  "@questQ04Ask": {
+    "description": "Max asks for quest q04."
+  },
+  "questQ04Done": "No more tripped breakers. My coffee maker thanks you.",
+  "@questQ04Done": {
+    "description": "Max's thank-you line after quest q04."
+  },
+  "questQ05Ask": "I can't tap all day. Hire an Intern to run the Old GPU.",
+  "@questQ05Ask": {
+    "description": "Max asks for quest q05."
+  },
+  "questQ05Done": "Our intern is very enthusiastic. Maybe too enthusiastic.",
+  "@questQ05Done": {
+    "description": "Max's thank-you line after quest q05."
+  },
+  "questQ06Ask": "Get the Old GPU to level 25. Milestones double the income!",
+  "@questQ06Ask": {
+    "description": "Max asks for quest q06."
+  },
+  "questQ06Done": "Double income! I might cry.",
+  "@questQ06Done": {
+    "description": "Max's thank-you line after quest q06."
+  },
+  "questQ07Ask": "Get the Gaming GPU Cluster to level 15.",
+  "@questQ07Ask": {
+    "description": "Max asks for quest q07."
+  },
+  "questQ07Done": "Those gamers won't know what hit them.",
+  "@questQ07Done": {
+    "description": "Max's thank-you line after quest q07."
+  },
+  "questQ08Ask": "Hire a Sysadmin so the Gaming Cluster runs itself.",
+  "@questQ08Ask": {
+    "description": "Max asks for quest q08."
+  },
+  "questQ08Done": "First question she asked: 'Have you tried turning it off and on again?' Hired.",
+  "@questQ08Done": {
+    "description": "Max's thank-you line after quest q08."
+  },
+  "questQ09Ask": "Time to go pro: Data Center GPU to level 5.",
+  "@questQ09Ask": {
+    "description": "Max asks for quest q09."
+  },
+  "questQ09Done": "Now we're a real data center. Sort of.",
+  "@questQ09Done": {
+    "description": "Max's thank-you line after quest q09."
+  },
+  "questQ10Ask": "Open the Upgrades panel and buy your first upgrade.",
+  "@questQ10Ask": {
+    "description": "Max asks for quest q10."
+  },
+  "questQ10Done": "Work smarter, not harder. That's my motto. Since today.",
+  "@questQ10Done": {
+    "description": "Max's thank-you line after quest q10."
+  },
+  "questQ11Ask": "It's getting toasty in here. Upgrade Cooling to level 15.",
+  "@questQ11Ask": {
+    "description": "Max asks for quest q11."
+  },
+  "questQ11Done": "Ahh, a cool breeze. My glasses stopped fogging up.",
+  "@questQ11Done": {
+    "description": "Max's thank-you line after quest q11."
+  },
+  "questQ12Ask": "Old GPU to level 75. Vintage hardware is in!",
+  "@questQ12Ask": {
+    "description": "Max asks for quest q12."
+  },
+  "questQ12Done": "Retro is the new cutting edge.",
+  "@questQ12Done": {
+    "description": "Max's thank-you line after quest q12."
+  },
+  "questQ13Ask": "Unlock a TPU Pod. Tensor cores go brrr.",
+  "@questQ13Ask": {
+    "description": "Max asks for quest q13."
+  },
+  "questQ13Done": "Brrr confirmed.",
+  "@questQ13Done": {
+    "description": "Max's thank-you line after quest q13."
+  },
+  "questQ14Ask": "Data Center GPU to level 40.",
+  "@questQ14Ask": {
+    "description": "Max asks for quest q14."
+  },
+  "questQ14Done": "The investors are starting to return my calls.",
+  "@questQ14Done": {
+    "description": "Max's thank-you line after quest q14."
+  },
+  "questQ15Ask": "Unlock a Supercomputer. Yes, an actual supercomputer.",
+  "@questQ15Ask": {
+    "description": "Max asks for quest q15."
+  },
+  "questQ15Done": "I named it Kevin. Hope that's okay.",
+  "@questQ15Done": {
+    "description": "Max's thank-you line after quest q15."
+  },
+  "questQ16Ask": "Own 4 upgrades.",
+  "@questQ16Ask": {
+    "description": "Max asks for quest q16."
+  },
+  "questQ16Done": "Optimization is my love language.",
+  "@questQ16Done": {
+    "description": "Max's thank-you line after quest q16."
+  },
+  "questQ17Ask": "Gaming GPU Cluster to level 60.",
+  "@questQ17Ask": {
+    "description": "Max asks for quest q17."
+  },
+  "questQ17Done": "We officially own more GPUs than every LAN party combined.",
+  "@questQ17Done": {
+    "description": "Max's thank-you line after quest q17."
+  },
+  "questQ18Ask": "I've been saving this one... unlock the Quantum Accelerator!",
+  "@questQ18Ask": {
+    "description": "Max asks for quest q18."
+  },
+  "questQ18Done": "It's both working and not working. Until we look. Then it's working!",
+  "@questQ18Done": {
+    "description": "Max's thank-you line after quest q18."
+  },
+  "questQ19Ask": "Earn $1B in total. Billionaire vibes.",
+  "@questQ19Ask": {
+    "description": "Max asks for quest q19."
+  },
+  "questQ19Done": "Billionaire! Should I buy a second pair of glasses?",
+  "@questQ19Done": {
+    "description": "Max's thank-you line after quest q19."
+  },
+  "questQ20Ask": "TPU Pod to level 60.",
+  "@questQ20Ask": {
+    "description": "Max asks for quest q20."
+  },
+  "questQ20Done": "The tensors are tensing. In a good way.",
+  "@questQ20Done": {
+    "description": "Max's thank-you line after quest q20."
+  },
+  "questQ21Ask": "Get every line to level 30.",
+  "@questQ21Ask": {
+    "description": "Max asks for quest q21."
+  },
+  "questQ21Done": "A balanced empire. Very zen.",
+  "@questQ21Done": {
+    "description": "Max's thank-you line after quest q21."
+  },
+  "questQ22Ask": "Earn $10B in total.",
+  "@questQ22Ask": {
+    "description": "Max asks for quest q22."
+  },
+  "questQ22Done": "Ten billion. I had to count the zeros twice.",
+  "@questQ22Done": {
+    "description": "Max's thank-you line after quest q22."
+  },
+  "questQ23Ask": "Get every line to level 50.",
+  "@questQ23Ask": {
+    "description": "Max asks for quest q23."
+  },
+  "questQ23Done": "Every rack humming in harmony. Music to my ears.",
+  "@questQ23Done": {
+    "description": "Max's thank-you line after quest q23."
+  },
+  "questQ24Ask": "Quantum Accelerator to level 100. Then we talk about the IPO...",
+  "@questQ24Ask": {
+    "description": "Max asks for quest q24."
+  },
+  "questQ24Done": "Legendary. Wall Street is calling, boss.",
+  "@questQ24Done": {
+    "description": "Max's thank-you line after quest q24."
   }
 }

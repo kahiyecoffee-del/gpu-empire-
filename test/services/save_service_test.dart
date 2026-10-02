@@ -62,6 +62,20 @@ void main() {
       expect(migrateSave(json), json);
     });
 
+    test('v1 saves gain the quest fields', () {
+      final v1 = {
+        'version': 1,
+        'lastSeenMs': 5,
+        'state': {'cash': '1.0e0'},
+      };
+      final migrated = migrateSave(v1);
+      expect(migrated['version'], currentSaveVersion);
+      final state = migrated['state']! as Map<String, Object?>;
+      expect(state['questIndex'], 0);
+      expect(state['manualJobs'], 0);
+      expect(state['cash'], '1.0e0');
+    });
+
     test('saves from a newer build are rejected', () {
       expect(
         () => migrateSave({'version': currentSaveVersion + 1}),

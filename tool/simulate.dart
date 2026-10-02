@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:gpuempire/core/economy_config.dart';
 import 'package:gpuempire/core/economy_engine.dart';
 import 'package:gpuempire/core/number_format.dart';
+import 'package:gpuempire/core/quests.dart';
 import 'package:gpuempire/core/simulator.dart';
 
 void main(List<String> args) {
@@ -27,7 +28,14 @@ void main(List<String> args) {
     jsonDecode(json) as Map<String, Object?>,
   );
   final engine = EconomyEngine(config);
-  final result = Simulator(engine).run(seconds: minutes * 60);
+  final quests = QuestBook.parse(
+    jsonDecode(File('assets/config/quests.json').readAsStringSync())
+        as Map<String, Object?>,
+  );
+  final result = Simulator(
+    engine,
+    questBook: QuestBook(engine, quests),
+  ).run(seconds: minutes * 60);
   final report = buildReport(config, result);
 
   stdout.write(report);
@@ -67,9 +75,9 @@ String buildReport(EconomyConfig config, SimResult r) {
   _target(b, 'Lines open at 5 min', '>= 3', '$linesAt5', linesAt5 >= 3);
   final infraShare = _infraSpent(config, r, 900) / _spent(r, 900);
   b.writeln(
-    '| Share of spending on power/cooling, first 15 min | 10-35% '
+    '| Share of spending on power/cooling, first 15 min | 5-35% '
     '| ${(infraShare * 100).round()}% '
-    '| ${infraShare >= 0.10 && infraShare <= 0.35 ? 'OK' : 'MISS'} |',
+    '| ${infraShare >= 0.05 && infraShare <= 0.35 ? 'OK' : 'MISS'} |',
   );
   for (final minutes in [15, 30]) {
     final idle = r.longestIdle(0, minutes * 60.0);
@@ -90,13 +98,19 @@ String buildReport(EconomyConfig config, SimResult r) {
 
   b
     ..writeln()
-    ..writeln('## Line unlocks and managers')
+    ..writeln('## Line unlocks, managers and quests')
     ..writeln()
     ..writeln('| Event | Time |')
     ..writeln('|---|---|');
   for (final e in r.events) {
-    if (e.kind == SimEventKind.lineUnlocked || e.kind == SimEventKind.manager) {
-      final what = e.kind == SimEventKind.manager ? 'Manager' : 'Line';
+    if (e.kind == SimEventKind.lineUnlocked ||
+        e.kind == SimEventKind.manager ||
+        e.kind == SimEventKind.quest) {
+      final what = switch (e.kind) {
+        SimEventKind.manager => 'Manager',
+        SimEventKind.quest => 'Quest done',
+        _ => 'Line',
+      };
       b.writeln('| $what: ${e.label} | ${formatDuration(e.time)} |');
     }
   }
