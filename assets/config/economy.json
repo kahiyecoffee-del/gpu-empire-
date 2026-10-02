@@ -1,14 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "startingCash": 0,
-  "lines": [
-    { "id": "legacy_gpu", "baseCost": 4, "costGrowth": 1.07, "cycleSeconds": 1, "baseIncome": 1, "power": 1, "cooling": 0.8, "startLevel": 1 },
-    { "id": "gaming_cluster", "baseCost": 60, "costGrowth": 1.15, "cycleSeconds": 3, "baseIncome": 60, "power": 15, "cooling": 12 },
-    { "id": "datacenter_gpu", "baseCost": 720, "costGrowth": 1.14, "cycleSeconds": 6, "baseIncome": 540, "power": 180, "cooling": 144 },
-    { "id": "tpu_pod", "baseCost": 25920, "costGrowth": 1.13, "cycleSeconds": 12, "baseIncome": 4320, "power": 6480, "cooling": 5184 },
-    { "id": "supercomputer", "baseCost": 622080, "costGrowth": 1.12, "cycleSeconds": 24, "baseIncome": 51840, "power": 155520, "cooling": 124416 },
-    { "id": "quantum", "baseCost": 6220800, "costGrowth": 1.11, "cycleSeconds": 96, "baseIncome": 622080, "power": 1555200, "cooling": 1244160 }
-  ],
+  "offline": { "maxSeconds": 7200, "minReportSeconds": 60 },
+  "prestige": { "k": 1, "divisor": 1000000000, "exponent": 0.5, "bonusPerShare": 0.02 },
+  "contracts": { "rewardFraction": 0.03, "levelStep": 10 },
   "milestones": [
     { "level": 25, "multiplier": 2 },
     { "level": 50, "multiplier": 2 },
@@ -21,40 +16,176 @@
     { "level": 400, "multiplier": 2 },
     { "level": 500, "multiplier": 2 }
   ],
-  "managers": [
-    { "id": "intern", "lineId": "legacy_gpu", "cost": 1000 },
-    { "id": "sysadmin", "lineId": "gaming_cluster", "cost": 15000 }
-  ],
-  "upgrades": [
-    { "id": "upg_01", "lineId": "legacy_gpu", "multiplier": 3, "cost": 15000 },
-    { "id": "upg_02", "lineId": "gaming_cluster", "multiplier": 3, "cost": 100000 },
-    { "id": "upg_03", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 740000 },
-    { "id": "upg_04", "lineId": "all", "multiplier": 3, "cost": 5100000 },
-    { "id": "upg_05", "lineId": "tpu_pod", "multiplier": 3, "cost": 36000000 },
-    { "id": "upg_06", "lineId": "supercomputer", "multiplier": 3, "cost": 250000000 },
-    { "id": "upg_07", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1800000000 },
-    { "id": "upg_08", "lineId": "gaming_cluster", "multiplier": 3, "cost": 12000000000 },
-    { "id": "upg_09", "lineId": "all", "multiplier": 3, "cost": 86000000000 },
-    { "id": "upg_10", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 610000000000 },
-    { "id": "upg_11", "lineId": "tpu_pod", "multiplier": 3, "cost": 4200000000000 },
-    { "id": "upg_12", "lineId": "quantum", "multiplier": 3, "cost": 30000000000000 },
-    { "id": "upg_13", "lineId": "supercomputer", "multiplier": 3, "cost": 210000000000000 },
-    { "id": "upg_14", "lineId": "all", "multiplier": 3, "cost": 1.5e15 },
-    { "id": "upg_15", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1e16 },
-    { "id": "upg_16", "lineId": "gaming_cluster", "multiplier": 3, "cost": 7.1e16 },
-    { "id": "upg_17", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 5e17 },
-    { "id": "upg_18", "lineId": "all", "multiplier": 3, "cost": 3.5e18 },
-    { "id": "upg_19", "lineId": "tpu_pod", "multiplier": 3, "cost": 2.4e19 },
-    { "id": "upg_20", "lineId": "supercomputer", "multiplier": 3, "cost": 1.7e20 },
-    { "id": "upg_21", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1.2e21 },
-    { "id": "upg_22", "lineId": "gaming_cluster", "multiplier": 3, "cost": 8.4e21 },
-    { "id": "upg_23", "lineId": "all", "multiplier": 3, "cost": 5.9e22 },
-    { "id": "upg_24", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 4.1e23 }
-  ],
-  "infrastructure": {
-    "power": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 },
-    "cooling": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 }
+  "events": {
+    "minInterval": 180, "maxInterval": 300, "lifetime": 25,
+    "list": [
+      { "id": "viral_product", "kind": "boost", "value": 5, "seconds": 20, "weight": 3 },
+      { "id": "investor_visit", "kind": "cash", "value": 45, "weight": 3 },
+      { "id": "chip_deal", "kind": "boost", "value": 2, "seconds": 120, "weight": 2 },
+      { "id": "hackathon", "kind": "cash", "value": 90, "weight": 1 }
+    ]
   },
-  "offline": { "maxSeconds": 7200, "minReportSeconds": 60 },
-  "prestige": { "k": 1, "divisor": 1000000, "exponent": 0.5 }
+  "skills": [
+    { "id": "seed_round", "branch": "income", "cost": 5, "effect": "incomeMultiplier", "value": 1.25 },
+    { "id": "series_a", "branch": "income", "cost": 25, "effect": "incomeMultiplier", "value": 1.5, "requires": "seed_round" },
+    { "id": "unicorn", "branch": "income", "cost": 150, "effect": "incomeMultiplier", "value": 2, "requires": "series_a" },
+    { "id": "bulk_power", "branch": "infra", "cost": 10, "effect": "infraDiscount", "value": 0.2 },
+    { "id": "liquid_cooling", "branch": "infra", "cost": 40, "effect": "infraCapacity", "value": 1.5, "requires": "bulk_power" },
+    { "id": "fusion_contract", "branch": "infra", "cost": 200, "effect": "infraDiscount", "value": 0.4, "requires": "liquid_cooling" },
+    { "id": "head_start", "branch": "automation", "cost": 5, "effect": "startCash", "value": 5000 },
+    { "id": "night_shift", "branch": "automation", "cost": 20, "effect": "offlineHours", "value": 4, "requires": "head_start" },
+    { "id": "auto_hire", "branch": "automation", "cost": 60, "effect": "startManagers", "value": 2, "requires": "night_shift" },
+    { "id": "dreamer", "branch": "automation", "cost": 250, "effect": "offlineHours", "value": 8, "requires": "auto_hire" }
+  ],
+  "locations": [
+    {
+      "id": "garage",
+      "goal": 20000000000,
+      "lines": [
+        { "id": "legacy_gpu", "baseCost": 4, "costGrowth": 1.07, "cycleSeconds": 1, "baseIncome": 1, "power": 1, "cooling": 0.8, "startLevel": 1 },
+        { "id": "gaming_cluster", "baseCost": 60, "costGrowth": 1.15, "cycleSeconds": 3, "baseIncome": 60, "power": 15, "cooling": 12 },
+        { "id": "datacenter_gpu", "baseCost": 720, "costGrowth": 1.14, "cycleSeconds": 6, "baseIncome": 540, "power": 180, "cooling": 144 },
+        { "id": "tpu_pod", "baseCost": 25920, "costGrowth": 1.13, "cycleSeconds": 12, "baseIncome": 4320, "power": 6480, "cooling": 5184 },
+        { "id": "supercomputer", "baseCost": 622080, "costGrowth": 1.12, "cycleSeconds": 24, "baseIncome": 51840, "power": 155520, "cooling": 124416 },
+        { "id": "quantum", "baseCost": 6220800, "costGrowth": 1.11, "cycleSeconds": 96, "baseIncome": 622080, "power": 1555200, "cooling": 1244160 }
+      ],
+      "managers": [
+        { "id": "intern", "role": "intern", "lineId": "legacy_gpu", "cost": 1000, "bonus": { "type": "lineIncome", "value": 1.25 } },
+        { "id": "sysadmin", "role": "sysadmin", "lineId": "gaming_cluster", "cost": 15000, "bonus": { "type": "infraDiscount", "value": 0.2 } },
+        { "id": "garage_network_engineer", "role": "network_engineer", "lineId": "datacenter_gpu", "cost": 29000, "bonus": { "type": "lineIncome", "value": 1.5 } },
+        { "id": "garage_ml_engineer", "role": "ml_engineer", "lineId": "tpu_pod", "cost": 1000000, "bonus": { "type": "allIncome", "value": 1.15 } },
+        { "id": "garage_chief_engineer", "role": "chief_engineer", "lineId": "supercomputer", "cost": 25000000, "bonus": { "type": "infraDiscount", "value": 0.25 } },
+        { "id": "garage_quantum_physicist", "role": "quantum_physicist", "lineId": "quantum", "cost": 250000000, "bonus": { "type": "lineIncome", "value": 2 } }
+      ],
+      "upgrades": [
+        { "id": "upg_01", "lineId": "legacy_gpu", "multiplier": 3, "cost": 15000 },
+        { "id": "upg_02", "lineId": "gaming_cluster", "multiplier": 3, "cost": 100000 },
+        { "id": "upg_03", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 740000 },
+        { "id": "upg_04", "lineId": "all", "multiplier": 3, "cost": 5100000 },
+        { "id": "upg_05", "lineId": "tpu_pod", "multiplier": 3, "cost": 36000000 },
+        { "id": "upg_06", "lineId": "supercomputer", "multiplier": 3, "cost": 250000000 },
+        { "id": "upg_07", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1800000000 },
+        { "id": "upg_08", "lineId": "gaming_cluster", "multiplier": 3, "cost": 12000000000 },
+        { "id": "upg_09", "lineId": "all", "multiplier": 3, "cost": 86000000000 },
+        { "id": "upg_10", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 610000000000 },
+        { "id": "upg_11", "lineId": "tpu_pod", "multiplier": 3, "cost": 4200000000000 },
+        { "id": "upg_12", "lineId": "quantum", "multiplier": 3, "cost": 30000000000000 },
+        { "id": "upg_13", "lineId": "supercomputer", "multiplier": 3, "cost": 210000000000000 },
+        { "id": "upg_14", "lineId": "all", "multiplier": 3, "cost": 1.5e15 },
+        { "id": "upg_15", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1e16 },
+        { "id": "upg_16", "lineId": "gaming_cluster", "multiplier": 3, "cost": 7.1e16 },
+        { "id": "upg_17", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 5e17 },
+        { "id": "upg_18", "lineId": "all", "multiplier": 3, "cost": 3.5e18 },
+        { "id": "upg_19", "lineId": "tpu_pod", "multiplier": 3, "cost": 2.4e19 },
+        { "id": "upg_20", "lineId": "supercomputer", "multiplier": 3, "cost": 1.7e20 },
+        { "id": "upg_21", "lineId": "legacy_gpu", "multiplier": 3, "cost": 1.2e21 },
+        { "id": "upg_22", "lineId": "gaming_cluster", "multiplier": 3, "cost": 8.4e21 },
+        { "id": "upg_23", "lineId": "all", "multiplier": 3, "cost": 5.9e22 },
+        { "id": "upg_24", "lineId": "datacenter_gpu", "multiplier": 3, "cost": 4.1e23 }
+      ],
+      "infrastructure": {
+        "power": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 },
+        "cooling": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 }
+      }
+    },
+    {
+      "id": "warehouse",
+      "goal": 500000000000,
+      "lines": [
+        { "id": "wh_rack_row", "baseCost": 4, "costGrowth": 1.075, "cycleSeconds": 1, "baseIncome": 3, "power": 1, "cooling": 0.8, "startLevel": 1 },
+        { "id": "wh_inference_farm", "baseCost": 60, "costGrowth": 1.155, "cycleSeconds": 3, "baseIncome": 180, "power": 15, "cooling": 12 },
+        { "id": "wh_training_cluster", "baseCost": 720, "costGrowth": 1.145, "cycleSeconds": 6, "baseIncome": 1620, "power": 180, "cooling": 144 },
+        { "id": "wh_tpu_superpod", "baseCost": 25920, "costGrowth": 1.135, "cycleSeconds": 12, "baseIncome": 12960, "power": 6480, "cooling": 5184 },
+        { "id": "wh_exascale", "baseCost": 622080, "costGrowth": 1.125, "cycleSeconds": 24, "baseIncome": 155520, "power": 155520, "cooling": 124416 },
+        { "id": "wh_quantum_array", "baseCost": 6220800, "costGrowth": 1.115, "cycleSeconds": 96, "baseIncome": 1866240, "power": 1555200, "cooling": 1244160 }
+      ],
+      "managers": [
+        { "id": "warehouse_intern", "role": "intern", "lineId": "wh_rack_row", "cost": 1000, "bonus": { "type": "lineIncome", "value": 1.25 } },
+        { "id": "warehouse_sysadmin", "role": "sysadmin", "lineId": "wh_inference_farm", "cost": 15000, "bonus": { "type": "infraDiscount", "value": 0.2 } },
+        { "id": "warehouse_network_engineer", "role": "network_engineer", "lineId": "wh_training_cluster", "cost": 29000, "bonus": { "type": "lineIncome", "value": 1.5 } },
+        { "id": "warehouse_ml_engineer", "role": "ml_engineer", "lineId": "wh_tpu_superpod", "cost": 1000000, "bonus": { "type": "allIncome", "value": 1.15 } },
+        { "id": "warehouse_chief_engineer", "role": "chief_engineer", "lineId": "wh_exascale", "cost": 25000000, "bonus": { "type": "infraDiscount", "value": 0.25 } },
+        { "id": "warehouse_quantum_physicist", "role": "quantum_physicist", "lineId": "wh_quantum_array", "cost": 250000000, "bonus": { "type": "lineIncome", "value": 2 } }
+      ],
+      "upgrades": [
+        { "id": "wh_upg_01", "lineId": "wh_rack_row", "multiplier": 3, "cost": 15000 },
+        { "id": "wh_upg_02", "lineId": "wh_inference_farm", "multiplier": 3, "cost": 100000 },
+        { "id": "wh_upg_03", "lineId": "wh_training_cluster", "multiplier": 3, "cost": 740000 },
+        { "id": "wh_upg_04", "lineId": "all", "multiplier": 3, "cost": 5100000 },
+        { "id": "wh_upg_05", "lineId": "wh_tpu_superpod", "multiplier": 3, "cost": 36000000 },
+        { "id": "wh_upg_06", "lineId": "wh_exascale", "multiplier": 3, "cost": 250000000 },
+        { "id": "wh_upg_07", "lineId": "wh_rack_row", "multiplier": 3, "cost": 1800000000 },
+        { "id": "wh_upg_08", "lineId": "wh_inference_farm", "multiplier": 3, "cost": 12000000000 },
+        { "id": "wh_upg_09", "lineId": "all", "multiplier": 3, "cost": 86000000000 },
+        { "id": "wh_upg_10", "lineId": "wh_training_cluster", "multiplier": 3, "cost": 610000000000 },
+        { "id": "wh_upg_11", "lineId": "wh_tpu_superpod", "multiplier": 3, "cost": 4200000000000 },
+        { "id": "wh_upg_12", "lineId": "wh_quantum_array", "multiplier": 3, "cost": 30000000000000 },
+        { "id": "wh_upg_13", "lineId": "wh_exascale", "multiplier": 3, "cost": 210000000000000 },
+        { "id": "wh_upg_14", "lineId": "all", "multiplier": 3, "cost": 1.5e15 },
+        { "id": "wh_upg_15", "lineId": "wh_rack_row", "multiplier": 3, "cost": 1e16 },
+        { "id": "wh_upg_16", "lineId": "wh_inference_farm", "multiplier": 3, "cost": 7.1e16 },
+        { "id": "wh_upg_17", "lineId": "wh_training_cluster", "multiplier": 3, "cost": 5e17 },
+        { "id": "wh_upg_18", "lineId": "all", "multiplier": 3, "cost": 3.5e18 },
+        { "id": "wh_upg_19", "lineId": "wh_tpu_superpod", "multiplier": 3, "cost": 2.4e19 },
+        { "id": "wh_upg_20", "lineId": "wh_exascale", "multiplier": 3, "cost": 1.7e20 },
+        { "id": "wh_upg_21", "lineId": "wh_rack_row", "multiplier": 3, "cost": 1.2e21 },
+        { "id": "wh_upg_22", "lineId": "wh_inference_farm", "multiplier": 3, "cost": 8.4e21 },
+        { "id": "wh_upg_23", "lineId": "all", "multiplier": 3, "cost": 5.9e22 },
+        { "id": "wh_upg_24", "lineId": "wh_training_cluster", "multiplier": 3, "cost": 4.1e23 }
+      ],
+      "infrastructure": {
+        "power": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 },
+        "cooling": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 }
+      }
+    },
+    {
+      "id": "campus",
+      "lines": [
+        { "id": "cp_chip_fab", "baseCost": 4, "costGrowth": 1.08, "cycleSeconds": 1, "baseIncome": 9, "power": 1, "cooling": 0.8, "startLevel": 1 },
+        { "id": "cp_model_foundry", "baseCost": 60, "costGrowth": 1.16, "cycleSeconds": 3, "baseIncome": 540, "power": 15, "cooling": 12 },
+        { "id": "cp_hyperscale_hall", "baseCost": 720, "costGrowth": 1.15, "cycleSeconds": 6, "baseIncome": 4860, "power": 180, "cooling": 144 },
+        { "id": "cp_optical_compute", "baseCost": 25920, "costGrowth": 1.14, "cycleSeconds": 12, "baseIncome": 38880, "power": 6480, "cooling": 5184 },
+        { "id": "cp_neuromorphic", "baseCost": 622080, "costGrowth": 1.13, "cycleSeconds": 24, "baseIncome": 466560, "power": 155520, "cooling": 124416 },
+        { "id": "cp_quantum_lab", "baseCost": 6220800, "costGrowth": 1.12, "cycleSeconds": 96, "baseIncome": 5598720, "power": 1555200, "cooling": 1244160 }
+      ],
+      "managers": [
+        { "id": "campus_intern", "role": "intern", "lineId": "cp_chip_fab", "cost": 1000, "bonus": { "type": "lineIncome", "value": 1.25 } },
+        { "id": "campus_sysadmin", "role": "sysadmin", "lineId": "cp_model_foundry", "cost": 15000, "bonus": { "type": "infraDiscount", "value": 0.2 } },
+        { "id": "campus_network_engineer", "role": "network_engineer", "lineId": "cp_hyperscale_hall", "cost": 29000, "bonus": { "type": "lineIncome", "value": 1.5 } },
+        { "id": "campus_ml_engineer", "role": "ml_engineer", "lineId": "cp_optical_compute", "cost": 1000000, "bonus": { "type": "allIncome", "value": 1.15 } },
+        { "id": "campus_chief_engineer", "role": "chief_engineer", "lineId": "cp_neuromorphic", "cost": 25000000, "bonus": { "type": "infraDiscount", "value": 0.25 } },
+        { "id": "campus_quantum_physicist", "role": "quantum_physicist", "lineId": "cp_quantum_lab", "cost": 250000000, "bonus": { "type": "lineIncome", "value": 2 } }
+      ],
+      "upgrades": [
+        { "id": "cp_upg_01", "lineId": "cp_chip_fab", "multiplier": 3, "cost": 15000 },
+        { "id": "cp_upg_02", "lineId": "cp_model_foundry", "multiplier": 3, "cost": 100000 },
+        { "id": "cp_upg_03", "lineId": "cp_hyperscale_hall", "multiplier": 3, "cost": 740000 },
+        { "id": "cp_upg_04", "lineId": "all", "multiplier": 3, "cost": 5100000 },
+        { "id": "cp_upg_05", "lineId": "cp_optical_compute", "multiplier": 3, "cost": 36000000 },
+        { "id": "cp_upg_06", "lineId": "cp_neuromorphic", "multiplier": 3, "cost": 250000000 },
+        { "id": "cp_upg_07", "lineId": "cp_chip_fab", "multiplier": 3, "cost": 1800000000 },
+        { "id": "cp_upg_08", "lineId": "cp_model_foundry", "multiplier": 3, "cost": 12000000000 },
+        { "id": "cp_upg_09", "lineId": "all", "multiplier": 3, "cost": 86000000000 },
+        { "id": "cp_upg_10", "lineId": "cp_hyperscale_hall", "multiplier": 3, "cost": 610000000000 },
+        { "id": "cp_upg_11", "lineId": "cp_optical_compute", "multiplier": 3, "cost": 4200000000000 },
+        { "id": "cp_upg_12", "lineId": "cp_quantum_lab", "multiplier": 3, "cost": 30000000000000 },
+        { "id": "cp_upg_13", "lineId": "cp_neuromorphic", "multiplier": 3, "cost": 210000000000000 },
+        { "id": "cp_upg_14", "lineId": "all", "multiplier": 3, "cost": 1.5e15 },
+        { "id": "cp_upg_15", "lineId": "cp_chip_fab", "multiplier": 3, "cost": 1e16 },
+        { "id": "cp_upg_16", "lineId": "cp_model_foundry", "multiplier": 3, "cost": 7.1e16 },
+        { "id": "cp_upg_17", "lineId": "cp_hyperscale_hall", "multiplier": 3, "cost": 5e17 },
+        { "id": "cp_upg_18", "lineId": "all", "multiplier": 3, "cost": 3.5e18 },
+        { "id": "cp_upg_19", "lineId": "cp_optical_compute", "multiplier": 3, "cost": 2.4e19 },
+        { "id": "cp_upg_20", "lineId": "cp_neuromorphic", "multiplier": 3, "cost": 1.7e20 },
+        { "id": "cp_upg_21", "lineId": "cp_chip_fab", "multiplier": 3, "cost": 1.2e21 },
+        { "id": "cp_upg_22", "lineId": "cp_model_foundry", "multiplier": 3, "cost": 8.4e21 },
+        { "id": "cp_upg_23", "lineId": "all", "multiplier": 3, "cost": 5.9e22 },
+        { "id": "cp_upg_24", "lineId": "cp_hyperscale_hall", "multiplier": 3, "cost": 4.1e23 }
+      ],
+      "infrastructure": {
+        "power": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 },
+        "cooling": { "baseCapacity": 10, "capacityGrowth": 1.5, "baseCost": 40, "costGrowth": 1.5 }
+      }
+    }
+  ]
 }

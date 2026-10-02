@@ -131,6 +131,13 @@ Firebase Analytics + Remote Config. Olaylar: oturum, hat açılması, yükseltme
 | 2026-10-02 | Müzik | Arka planda tatlı, döngüsel bir müzik (C majör, 92 BPM, ~42 sn döngü). Lisans derdi olmasın diye kodla sentezlendi (`tool/music/compose.py`). Ayarlar'dan kapatılabilir; tarayıcı kuralları gereği ilk dokunuşta başlar. Paket: `audioplayers`. |
 | 2026-10-02 | Danışman karakter: Max | Kıvırcık saçlı, gözlüklü CTO "Max". Kodla çizilmiş avatar, ilk açılışta karşılama, ekranda sürekli görünen konuşma balonu. |
 | 2026-10-02 | Yan görevler | Max sırayla 24 yan görev verir (`assets/config/quests.json`). Ödül = bu tur kazanılan toplamın %5–10'u (alt sınırlı), böylece ödüller ekonomiyle ölçeklenir ama katlanarak büyümez. Simülatör görevleri de oynar. Aşama 3'te "reklam izle, ödülü ×2 al" eklenecek. Kayıt formatı v2'ye geçti (eski kayıtlar otomatik dönüştürülür). |
+| 2026-10-02 | Lokasyonlar (A2) | Sıralı dünyalar: Garaj → Depo → Kampüs. Her birinin 6 kendi hattı, yöneticisi, yükseltmesi ve altyapısı var. Lokasyon hedefi (bu lokasyonda kazanılan para) dolunca "Move" ile taşınılır; hat/yönetici/yükseltme/altyapı sıfırlanır, tur kazancı ve hisseler korunur. Tüm lokasyonlar aynı sayı ölçeğinde; Depo ×3, Kampüs ×9 hızlı üretir ama fiyat artışı daha diktir. (Farklı ölçekler simülatörde kontrolsüz IPO döngüsüne yol açtı.) |
+| 2026-10-02 | IPO (A2) | Her şey Garaj'a sıfırlanır; hisse = floor(k·√(tur kazancı / 1e9)); her hisse +%2 gelir. Hisse ≥1 olunca istenen an yapılabilir. |
+| 2026-10-02 | Yetenek ağacı (A2) | 10 yetenek, 3 dal (Büyüme, Altyapı, Otomasyon); hisseyle alınır, harcanan hisse bonusunu kaybeder. |
+| 2026-10-02 | Yöneticiler (A2) | Her hattın yöneticisi: otomasyon + bonus (hat ×1.25–×2, tüm hatlar ×1.15, altyapı −%20/−%25). Kodla çizilmiş portreler. |
+| 2026-10-02 | Rastgele olaylar (A2) | 3–5 dakikada bir, 25 sn içinde dokunulmalı: Viral ürün (×5, 20 sn), Yatırımcı ziyareti (45 sn gelir), GPU indirimi (×2, 120 sn), Hackathon (90 sn gelir). Ortalama ~+%30 ek gelir. |
+| 2026-10-02 | Görevler (A2) | Max'in 29 hikaye görevi bir kez oynanır (IPO'da sıfırlanmaz). Hikaye görevi bulunulan yerde yapılamıyorsa her tur üretilen "kontratlar" gelir (hat seviyesi / lokasyon kazancı). Ödüller bulunulan lokasyonun kazancına göre (%3–6). Kayıt formatı v3. |
+| 2026-10-02 | A2 tempo (simülatör) | Depo'ya taşınma 37. dk, ilk IPO 84. dk; 2. turda Depo ~24 dk, Kampüs ~53 dk. 3 saatlik oturumda "yapacak bir şey yok" en fazla 2 dk 17 sn. CI'daki tempo testi taşınma (30–50 dk) ve ilk IPO'yu (60–90 dk) da kontrol eder. |
 
 ---
 

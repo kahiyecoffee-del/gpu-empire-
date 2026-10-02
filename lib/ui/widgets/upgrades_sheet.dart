@@ -11,7 +11,9 @@ import '../theme.dart';
 final affordableUpgradesProvider = Provider<int>((ref) {
   final state = ref.watch(gameProvider);
   final engine = ref.watch(engineProvider);
-  return engine.config.upgrades
+  return engine
+      .location(state)
+      .upgrades
       .where((u) => engine.isUpgradeAvailable(state, u) && u.cost <= state.cash)
       .length;
 });
@@ -38,7 +40,9 @@ class _UpgradesSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
-    final upgrades = engine.config.upgrades
+    final upgrades = engine
+        .location(state)
+        .upgrades
         .where((u) => engine.isUpgradeAvailable(state, u))
         .take(_visible)
         .toList();

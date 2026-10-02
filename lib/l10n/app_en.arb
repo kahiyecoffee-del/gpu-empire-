@@ -509,28 +509,504 @@
   "@questQ21Done": {
     "description": "Max's thank-you line after quest q21."
   },
-  "questQ22Ask": "Earn $10B in total.",
+  "questQ22Ask": "We're out of space! Earn enough to move into a Warehouse.",
   "@questQ22Ask": {
     "description": "Max asks for quest q22."
   },
-  "questQ22Done": "Ten billion. I had to count the zeros twice.",
+  "questQ22Done": "A whole warehouse! I can finally stretch my arms.",
   "@questQ22Done": {
     "description": "Max's thank-you line after quest q22."
   },
-  "questQ23Ask": "Get every line to level 50.",
+  "questQ23Ask": "Get the Inference Farm to level 25.",
   "@questQ23Ask": {
     "description": "Max asks for quest q23."
   },
-  "questQ23Done": "Every rack humming in harmony. Music to my ears.",
+  "questQ23Done": "Inference at scale. The chatbots are chatting.",
   "@questQ23Done": {
     "description": "Max's thank-you line after quest q23."
   },
-  "questQ24Ask": "Quantum Accelerator to level 100. Then we talk about the IPO...",
+  "questQ24Ask": "Investors are knocking. Open Investors and take us public!",
   "@questQ24Ask": {
     "description": "Max asks for quest q24."
   },
-  "questQ24Done": "Legendary. Wall Street is calling, boss.",
+  "questQ24Done": "We're public! Ring that bell, boss.",
   "@questQ24Done": {
     "description": "Max's thank-you line after quest q24."
+  },
+  "locationGarage": "Garage",
+  "@locationGarage": {
+    "description": "Name of a location (world)."
+  },
+  "locationWarehouse": "Warehouse",
+  "@locationWarehouse": {
+    "description": "Name of a location (world)."
+  },
+  "locationCampus": "Campus",
+  "@locationCampus": {
+    "description": "Name of a location (world)."
+  },
+  "lineWhRackRow": "GPU Rack Row",
+  "@lineWhRackRow": {
+    "description": "Name of a production line."
+  },
+  "lineWhInferenceFarm": "Inference Farm",
+  "@lineWhInferenceFarm": {
+    "description": "Name of a production line."
+  },
+  "lineWhTrainingCluster": "Training Cluster",
+  "@lineWhTrainingCluster": {
+    "description": "Name of a production line."
+  },
+  "lineWhTpuSuperpod": "TPU Superpod",
+  "@lineWhTpuSuperpod": {
+    "description": "Name of a production line."
+  },
+  "lineWhExascale": "Exascale System",
+  "@lineWhExascale": {
+    "description": "Name of a production line."
+  },
+  "lineWhQuantumArray": "Quantum Array",
+  "@lineWhQuantumArray": {
+    "description": "Name of a production line."
+  },
+  "lineCpChipFab": "AI Chip Fab",
+  "@lineCpChipFab": {
+    "description": "Name of a production line."
+  },
+  "lineCpModelFoundry": "Model Foundry",
+  "@lineCpModelFoundry": {
+    "description": "Name of a production line."
+  },
+  "lineCpHyperscaleHall": "Hyperscale Hall",
+  "@lineCpHyperscaleHall": {
+    "description": "Name of a production line."
+  },
+  "lineCpOpticalCompute": "Optical Computer",
+  "@lineCpOpticalCompute": {
+    "description": "Name of a production line."
+  },
+  "lineCpNeuromorphic": "Neuromorphic Core",
+  "@lineCpNeuromorphic": {
+    "description": "Name of a production line."
+  },
+  "lineCpQuantumLab": "Quantum Lab",
+  "@lineCpQuantumLab": {
+    "description": "Name of a production line."
+  },
+  "managerNetworkEngineer": "Network Engineer",
+  "@managerNetworkEngineer": {
+    "description": "Name of a manager role."
+  },
+  "managerMlEngineer": "ML Engineer",
+  "@managerMlEngineer": {
+    "description": "Name of a manager role."
+  },
+  "managerChiefEngineer": "Chief Engineer",
+  "@managerChiefEngineer": {
+    "description": "Name of a manager role."
+  },
+  "managerQuantumPhysicist": "Quantum Physicist",
+  "@managerQuantumPhysicist": {
+    "description": "Name of a manager role."
+  },
+  "bonusLineIncome": "This line ×{value}",
+  "@bonusLineIncome": {
+    "description": "Manager bonus: multiplies their line.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "bonusAllIncome": "All lines ×{value}",
+  "@bonusAllIncome": {
+    "description": "Manager bonus: multiplies every line.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "bonusInfraDiscount": "Power & cooling −{percent}%",
+  "@bonusInfraDiscount": {
+    "description": "Manager bonus: cheaper infrastructure.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "nextLocation": "Next: {name}",
+  "@nextLocation": {
+    "description": "Title of the card showing progress to the next location.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "locationGoal": "{current} / {goal} earned here",
+  "@locationGoal": {
+    "description": "Progress to the next location.",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "moveButton": "Move",
+  "@moveButton": {
+    "description": "Button that moves to the next location."
+  },
+  "moveConfirmTitle": "Move to the {name}?",
+  "@moveConfirmTitle": {
+    "description": "Confirmation title for moving.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moveConfirmBody": "Your lines, managers, upgrades and power start fresh there, but everything earns much faster. This run's earnings and your shares are kept.",
+  "@moveConfirmBody": {
+    "description": "Explains what moving does."
+  },
+  "finalLocation": "This is our biggest site yet. More locations are coming!",
+  "@finalLocation": {
+    "description": "Shown in the last location."
+  },
+  "investors": "Investors",
+  "@investors": {
+    "description": "Title of the IPO and skills panel; also its button."
+  },
+  "ipoShort": "IPO",
+  "@ipoShort": {
+    "description": "Short label of the investors button."
+  },
+  "ipoTab": "IPO",
+  "@ipoTab": {
+    "description": "Tab with the IPO."
+  },
+  "skillsTab": "Skills",
+  "@skillsTab": {
+    "description": "Tab with investor skills."
+  },
+  "sharesHeld": "{count} shares",
+  "@sharesHeld": {
+    "description": "Number of shares the player holds.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "shareBonus": "+{percent}% income",
+  "@shareBonus": {
+    "description": "Income bonus from shares.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "ipoGain": "+{count} shares",
+  "@ipoGain": {
+    "description": "Shares the next IPO would pay.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "ipoGainLabel": "Go public now for",
+  "@ipoGainLabel": {
+    "description": "Label above the shares an IPO would pay."
+  },
+  "ipoAfter": "Income bonus after IPO: +{percent}%",
+  "@ipoAfter": {
+    "description": "Bonus after going public.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "ipoButton": "Go public",
+  "@ipoButton": {
+    "description": "Button that performs the IPO."
+  },
+  "ipoNotYet": "Earn more this run to get your first share.",
+  "@ipoNotYet": {
+    "description": "Shown when an IPO would pay nothing."
+  },
+  "ipoConfirmTitle": "Go public?",
+  "@ipoConfirmTitle": {
+    "description": "Confirmation title for the IPO."
+  },
+  "ipoConfirmBody": "Everything resets to the Garage: cash, lines, managers, upgrades and location. You keep your shares and skills, and every share boosts all income.",
+  "@ipoConfirmBody": {
+    "description": "Explains what an IPO resets."
+  },
+  "ipoInfo": "Each share adds {percent}% to all income. Spending shares on skills removes their bonus.",
+  "@ipoInfo": {
+    "description": "Explains shares.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "skillCost": "{cost} shares",
+  "@skillCost": {
+    "description": "Price of a skill.",
+    "placeholders": {
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
+  "skillOwned": "Owned",
+  "@skillOwned": {
+    "description": "Badge on an owned skill."
+  },
+  "skillRequires": "Requires {skill}",
+  "@skillRequires": {
+    "description": "Shown on a skill whose prerequisite is missing.",
+    "placeholders": {
+      "skill": {
+        "type": "String"
+      }
+    }
+  },
+  "branchIncome": "Growth",
+  "@branchIncome": {
+    "description": "Name of a skill tree branch."
+  },
+  "branchInfra": "Infrastructure",
+  "@branchInfra": {
+    "description": "Name of a skill tree branch."
+  },
+  "branchAutomation": "Automation",
+  "@branchAutomation": {
+    "description": "Name of a skill tree branch."
+  },
+  "skillSeedRound": "Seed Round",
+  "@skillSeedRound": {
+    "description": "Name of an investor skill."
+  },
+  "skillSeriesA": "Series A",
+  "@skillSeriesA": {
+    "description": "Name of an investor skill."
+  },
+  "skillUnicorn": "Unicorn Status",
+  "@skillUnicorn": {
+    "description": "Name of an investor skill."
+  },
+  "skillBulkPower": "Bulk Power Deals",
+  "@skillBulkPower": {
+    "description": "Name of an investor skill."
+  },
+  "skillLiquidCooling": "Liquid Cooling",
+  "@skillLiquidCooling": {
+    "description": "Name of an investor skill."
+  },
+  "skillFusionContract": "Fusion Contract",
+  "@skillFusionContract": {
+    "description": "Name of an investor skill."
+  },
+  "skillHeadStart": "Head Start",
+  "@skillHeadStart": {
+    "description": "Name of an investor skill."
+  },
+  "skillNightShift": "Night Shift",
+  "@skillNightShift": {
+    "description": "Name of an investor skill."
+  },
+  "skillAutoHire": "Auto-Hire",
+  "@skillAutoHire": {
+    "description": "Name of an investor skill."
+  },
+  "skillDreamer": "Sweet Dreams",
+  "@skillDreamer": {
+    "description": "Name of an investor skill."
+  },
+  "effectIncome": "All income ×{value}",
+  "@effectIncome": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "effectInfraDiscount": "Power & cooling {percent}% cheaper",
+  "@effectInfraDiscount": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "effectInfraCapacity": "Power & cooling capacity ×{value}",
+  "@effectInfraCapacity": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "effectStartCash": "Start every run with {amount}",
+  "@effectStartCash": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "effectOfflineHours": "Offline earnings for up to {hours} h",
+  "@effectOfflineHours": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "effectStartManagers": "Start every run with the first {count} managers",
+  "@effectStartManagers": {
+    "description": "Skill effect.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "eventViral": "Viral AI product!",
+  "@eventViral": {
+    "description": "Random event title."
+  },
+  "eventInvestor": "Investor visit!",
+  "@eventInvestor": {
+    "description": "Random event title."
+  },
+  "eventChipDeal": "GPU flash sale!",
+  "@eventChipDeal": {
+    "description": "Random event title."
+  },
+  "eventHackathon": "Hackathon win!",
+  "@eventHackathon": {
+    "description": "Random event title."
+  },
+  "eventBoost": "×{multiplier} income for {seconds}s",
+  "@eventBoost": {
+    "description": "Random event reward: a boost.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "eventCash": "+{amount} instantly",
+  "@eventCash": {
+    "description": "Random event reward: cash.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "eventTap": "Tap to collect",
+  "@eventTap": {
+    "description": "Hint on a random event bubble."
+  },
+  "boostActive": "×{multiplier} boost · {seconds}s",
+  "@boostActive": {
+    "description": "Indicator for an active boost.",
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "contractLevel": "New contract: get the {line} to Lv {level}.",
+  "@contractLevel": {
+    "description": "Max hands out a level contract.",
+    "placeholders": {
+      "line": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "contractEarn": "New contract: earn {amount} in this location.",
+  "@contractEarn": {
+    "description": "Max hands out an earnings contract.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "contractDone": "Contract complete! The client is thrilled.",
+  "@contractDone": {
+    "description": "Max after a contract is claimed."
+  },
+  "questQ25Ask": "Spend some shares on an investor skill.",
+  "@questQ25Ask": {
+    "description": "Max asks for quest q25."
+  },
+  "questQ25Done": "Smart money. The board is impressed.",
+  "@questQ25Done": {
+    "description": "Max's thank-you line after quest q25."
+  },
+  "questQ26Ask": "Next stop: our own Campus. Earn enough to move!",
+  "@questQ26Ask": {
+    "description": "Max asks for quest q26."
+  },
+  "questQ26Done": "A campus with a cafeteria. And beanbags!",
+  "@questQ26Done": {
+    "description": "Max's thank-you line after quest q26."
+  },
+  "questQ27Ask": "Get the Model Foundry to level 50.",
+  "@questQ27Ask": {
+    "description": "Max asks for quest q27."
+  },
+  "questQ27Done": "We forge models like a blacksmith forges swords.",
+  "@questQ27Done": {
+    "description": "Max's thank-you line after quest q27."
+  },
+  "questQ28Ask": "Go public 3 times. Practice makes perfect.",
+  "@questQ28Ask": {
+    "description": "Max asks for quest q28."
+  },
+  "questQ28Done": "Three IPOs. Wall Street knows our name now.",
+  "@questQ28Done": {
+    "description": "Max's thank-you line after quest q28."
+  },
+  "questQ29Ask": "Own 5 investor skills.",
+  "@questQ29Ask": {
+    "description": "Max asks for quest q29."
+  },
+  "questQ29Done": "Our investor deck is legendary.",
+  "@questQ29Done": {
+    "description": "Max's thank-you line after quest q29."
+  },
+  "devSpawnEvent": "Spawn random event",
+  "@devSpawnEvent": {
+    "description": "Dev button that shows a random event now."
   }
 }

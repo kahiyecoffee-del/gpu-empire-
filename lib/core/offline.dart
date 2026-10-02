@@ -45,7 +45,7 @@ OfflineReport catchUp(
       capped: false,
     );
   }
-  final cap = engine.config.offlineMaxSeconds;
+  final cap = engine.offlineCapSeconds(state);
   final seconds = elapsed > cap ? cap : elapsed;
   final next = engine.tick(state, seconds, countPlayTime: false);
   return OfflineReport(

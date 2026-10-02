@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/economy_config.dart';
 import '../../core/game_state.dart';
 import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
@@ -13,6 +14,7 @@ import 'floating_gains.dart';
 import 'glass_card.dart';
 import 'icon_text.dart';
 import 'iso_rack.dart';
+import 'max_avatar.dart';
 
 /// Racks drawn for a line: one more at these levels.
 const _rackTiers = [10, 50];
@@ -55,7 +57,10 @@ class _LineCardState extends ConsumerState<LineCard>
     if (crossed.isEmpty) return;
     final l10n = AppLocalizations.of(context);
     final multiplier = crossed.fold(1.0, (p, m) => p * m.multiplier);
-    final name = lineName(l10n, engine.config.lines[widget.index].id);
+    final name = lineName(
+      l10n,
+      engine.lineConfig(ref.read(gameProvider), widget.index).id,
+    );
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -107,8 +112,8 @@ class _LineCardState extends ConsumerState<LineCard>
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
     final line = state.lines[i];
-    final config = engine.config.lines[i];
-    final style = LineStyle.of(config.id);
+    final config = engine.lineConfig(state, i);
+    final style = LineStyle.forIndex(i);
 
     if (!line.isUnlocked) {
       return _LockedCard(index: i, canUnlock: engine.isAvailable(state, i));
@@ -123,7 +128,7 @@ class _LineCardState extends ConsumerState<LineCard>
         ? (config.cycleSeconds - line.progress) / engine.efficiency(state)
         : engine.effectiveCycleSeconds(state, i);
     final milestone = engine.nextMilestone(line.level);
-    final manager = engine.config.managerForLine(config.id);
+    final manager = engine.managerFor(state, i);
     final racks = 1 + _rackTiers.where((t) => line.level >= t).length;
 
     return AnimatedBuilder(
@@ -219,7 +224,7 @@ class _LineCardState extends ConsumerState<LineCard>
                       if (manager != null) ...[
                         const SizedBox(height: 6),
                         _ManagerRow(
-                          managerId: manager.id,
+                          manager: manager,
                           owned: managed,
                           color: style.glow,
                         ),
@@ -375,51 +380,79 @@ class _BuyButton extends ConsumerWidget {
 
 class _ManagerRow extends ConsumerWidget {
   const _ManagerRow({
-    required this.managerId,
+    required this.manager,
     required this.owned,
     required this.color,
   });
 
-  final String managerId;
+  final ManagerConfig manager;
   final bool owned;
   final Color color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final name = managerName(l10n, managerId);
+    final name = managerName(l10n, manager.role);
+    final bonus = managerBonus(l10n, manager);
+    final portrait = PersonAvatar(
+      look: PersonLook.forRole(manager.role),
+      size: 26,
+    );
     if (owned) {
-      return IconText(
-        Icons.verified,
-        l10n.managerWorking(name),
-        iconColor: color,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: AppColors.textPrimary),
+      return Row(
+        children: [
+          portrait,
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: name,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  if (bonus.isNotEmpty)
+                    TextSpan(
+                      text: '  $bonus',
+                      style: TextStyle(color: color),
+                    ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: AppColors.textPrimary),
+            ),
+          ),
+        ],
       );
     }
-    final engine = ref.watch(engineProvider);
-    final cost = engine.config.managers
-        .firstWhere((m) => m.id == managerId)
-        .cost;
-    final affordable = ref.watch(gameProvider.select((s) => s.cash >= cost));
-    return ChunkyButton(
-      color: AppColors.accentAlt,
-      radius: 10,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      onPressed: affordable
-          ? () => ref.read(gameProvider.notifier).buyManager(managerId)
-          : null,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: IconText(
-          Icons.person_add,
-          '${l10n.hireManager(name)} · \$${formatBig(cost)}',
-          maxLines: 1,
-          style: const TextStyle(fontSize: 11),
+    final affordable = ref.watch(
+      gameProvider.select((s) => s.cash >= manager.cost),
+    );
+    return Row(
+      children: [
+        Opacity(opacity: 0.6, child: portrait),
+        const SizedBox(width: 6),
+        Flexible(
+          child: ChunkyButton(
+            color: AppColors.accentAlt,
+            radius: 10,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            onPressed: affordable
+                ? () => ref.read(gameProvider.notifier).buyManager(manager.id)
+                : null,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '${l10n.hireManager(name)} · \$${formatBig(manager.cost)}',
+                maxLines: 1,
+                style: const TextStyle(fontSize: 11),
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -435,8 +468,8 @@ class _LockedCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(gameProvider);
     final engine = ref.watch(engineProvider);
-    final config = engine.config.lines[index];
-    final style = LineStyle.of(config.id);
+    final config = engine.lineConfig(state, index);
+    final style = LineStyle.forIndex(index);
     final textTheme = Theme.of(context).textTheme;
     final offer = ref.read(gameProvider.notifier).offer(index, BuyMode.one);
     return Opacity(

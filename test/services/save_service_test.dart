@@ -62,17 +62,21 @@ void main() {
       expect(migrateSave(json), json);
     });
 
-    test('v1 saves gain the quest fields', () {
+    test('v1 saves migrate to the current format', () {
       final v1 = {
         'version': 1,
         'lastSeenMs': 5,
-        'state': {'cash': '1.0e0'},
+        'state': {'cash': '1.0e0', 'totalEarned': '5.0e0'},
       };
       final migrated = migrateSave(v1);
       expect(migrated['version'], currentSaveVersion);
       final state = migrated['state']! as Map<String, Object?>;
-      expect(state['questIndex'], 0);
       expect(state['manualJobs'], 0);
+      expect(state['locationIndex'], 0);
+      expect(state['locationEarned'], state['totalEarned']);
+      final meta = state['meta']! as Map<String, Object?>;
+      expect(meta['storyIndex'], 0);
+      expect(meta['shares'], '0.0e0');
       expect(state['cash'], '1.0e0');
     });
 

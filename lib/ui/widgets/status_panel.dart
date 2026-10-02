@@ -6,6 +6,7 @@ import '../../core/number_format.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme.dart';
+import '../names.dart';
 import 'animated_money.dart';
 import 'chunky_button.dart';
 import 'icon_text.dart';
@@ -27,6 +28,7 @@ class StatusPanel extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
       child: Column(
         children: [
+          _LocationChip(name: locationName(l10n, engine.location(state).id)),
           AnimatedMoney(
             value: state.cash,
             style: textTheme.headlineLarge?.copyWith(
@@ -43,25 +45,28 @@ class StatusPanel extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.35),
-              ),
-            ),
-            child: IconText(
-              income.isZero ? Icons.touch_app : Icons.trending_up,
-              income.isZero
-                  ? l10n.tapToRun
-                  : l10n.cashPerSecond('\$${formatBig(income)}'),
-              style: textTheme.labelLarge?.copyWith(
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _Pill(
                 color: AppColors.accent,
-                fontWeight: FontWeight.w700,
+                icon: income.isZero ? Icons.touch_app : Icons.trending_up,
+                text: income.isZero
+                    ? l10n.tapToRun
+                    : l10n.cashPerSecond('\$${formatBig(income)}'),
               ),
-            ),
+              if (state.boost case final boost?)
+                _Pill(
+                  color: const Color(0xFFFF9F2E),
+                  icon: Icons.local_fire_department,
+                  text: l10n.boostActive(
+                    formatMultiplier(boost.multiplier),
+                    '${boost.secondsLeft.ceil()}',
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 10),
           const Row(
@@ -103,6 +108,53 @@ class StatusPanel extends ConsumerWidget {
                 : const SizedBox(width: double.infinity),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.color, required this.icon, required this.text});
+
+  final Color color;
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: IconText(
+        icon,
+        text,
+        style: Theme.of(context).textTheme.labelLarge
+            ?.copyWith(color: color, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+class _LocationChip extends StatelessWidget {
+  const _LocationChip({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconText(
+      Icons.place,
+      name.toUpperCase(),
+      iconColor: const Color(0xFFFFC44D),
+      style: const TextStyle(
+        fontSize: 11,
+        letterSpacing: 1.5,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textSecondary,
       ),
     );
   }

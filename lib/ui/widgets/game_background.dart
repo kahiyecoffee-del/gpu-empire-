@@ -5,18 +5,34 @@ import '../theme.dart';
 /// Deep navy backdrop with a faint isometric floor grid and a soft glow,
 /// so the screen reads as the inside of a data center.
 class GameBackground extends StatelessWidget {
-  const GameBackground({super.key, required this.child});
+  const GameBackground({
+    super.key,
+    required this.child,
+    this.locationIndex = 0,
+  });
 
   final Widget child;
 
+  /// Each location gets its own color mood.
+  final int locationIndex;
+
+  static const _tints = [
+    Color(0xFF111A38), // Garage: night navy.
+    Color(0xFF0D2A33), // Warehouse: industrial teal.
+    Color(0xFF26123D), // Campus: royal purple.
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: const _BackgroundPainter(), child: child);
+    final tint = _tints[locationIndex.clamp(0, _tints.length - 1)];
+    return CustomPaint(painter: _BackgroundPainter(tint), child: child);
   }
 }
 
 class _BackgroundPainter extends CustomPainter {
-  const _BackgroundPainter();
+  const _BackgroundPainter(this.tint);
+
+  final Color tint;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -24,10 +40,10 @@ class _BackgroundPainter extends CustomPainter {
     canvas.drawRect(
       rect,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF111A38), AppColors.background, Color(0xFF070B18)],
+          colors: [tint, AppColors.background, const Color(0xFF070B18)],
         ).createShader(rect),
     );
     // Soft spotlight behind the header.
@@ -63,5 +79,6 @@ class _BackgroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_BackgroundPainter oldDelegate) => false;
+  bool shouldRepaint(_BackgroundPainter oldDelegate) =>
+      oldDelegate.tint != tint;
 }

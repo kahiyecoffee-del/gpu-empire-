@@ -26,6 +26,11 @@ String questAsk(AppLocalizations l10n, String id) => switch (id) {
   'q22' => l10n.questQ22Ask,
   'q23' => l10n.questQ23Ask,
   'q24' => l10n.questQ24Ask,
+  'q25' => l10n.questQ25Ask,
+  'q26' => l10n.questQ26Ask,
+  'q27' => l10n.questQ27Ask,
+  'q28' => l10n.questQ28Ask,
+  'q29' => l10n.questQ29Ask,
   _ => id,
 };
 
@@ -54,5 +59,10 @@ String questDone(AppLocalizations l10n, String id) => switch (id) {
   'q22' => l10n.questQ22Done,
   'q23' => l10n.questQ23Done,
   'q24' => l10n.questQ24Done,
+  'q25' => l10n.questQ25Done,
+  'q26' => l10n.questQ26Done,
+  'q27' => l10n.questQ27Done,
+  'q28' => l10n.questQ28Done,
+  'q29' => l10n.questQ29Done,
   _ => '',
 };

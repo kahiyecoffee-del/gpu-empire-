@@ -28,6 +28,14 @@ final questBookProvider = Provider<QuestBook>(
       QuestBook(ref.watch(engineProvider), ref.watch(questsConfigProvider)),
 );
 
+/// Story quests plus generated contracts, as Max presents them.
+final questBoardProvider = Provider<QuestBoard>(
+  (ref) => QuestBoard(
+    ref.watch(questBookProvider),
+    ContractBook(ref.watch(engineProvider)),
+  ),
+);
+
 final gameProvider = NotifierProvider<GameController, GameState>(
   GameController.new,
 );
@@ -60,9 +68,12 @@ class GameController extends Notifier<GameState> {
   EconomyEngine get _engine => ref.read(engineProvider);
 
   @override
-  GameState build() =>
-      ref.watch(initialGameStateProvider) ??
-      GameState.initial(ref.watch(economyConfigProvider));
+  GameState build() => ref
+      .read(questBoardProvider)
+      .ensure(
+        ref.watch(initialGameStateProvider) ??
+            GameState.initial(ref.watch(economyConfigProvider)),
+      );
 
   void tick(double dt) => state = _engine.tick(state, dt);
 
@@ -93,29 +104,47 @@ class GameController extends Notifier<GameState> {
 
   bool buyInfra(InfraKind kind) => _apply(_engine.buyInfra(state, kind));
 
-  /// Collects the finished side quest. Returns the reward, or null if the
-  /// active quest is not done yet.
+  /// Collects the quest Max is showing. Returns the reward, or null if it
+  /// is not done yet.
   BigNumber? claimQuest() {
-    final book = ref.read(questBookProvider);
-    final quest = book.current(state);
-    if (quest == null) return null;
-    final reward = book.reward(state, quest);
-    final next = book.claim(state);
+    final board = ref.read(questBoardProvider);
+    final (quest, _) = board.active(state);
+    final reward = board.reward(state, quest);
+    final next = board.claim(state);
     if (next == null) return null;
-    state = next;
+    state = board.ensure(next);
     return reward;
   }
+
+  bool moveToNextLocation() =>
+      _apply(_withContract(_engine.moveToNextLocation(state)));
+
+  /// Goes public. Returns the shares gained, or null if none.
+  BigNumber? goPublic() {
+    final gained = _engine.sharesPreview(state);
+    final next = _withContract(_engine.ipo(state));
+    if (next == null) return null;
+    state = next;
+    return gained;
+  }
+
+  bool buySkill(String id) => _apply(_engine.buySkill(state, id));
+
+  void collectEvent(EventConfig event) =>
+      state = _engine.applyEvent(state, event);
+
+  GameState? _withContract(GameState? s) =>
+      s == null ? null : ref.read(questBoardProvider).ensure(s);
 
   /// Replaces the whole state, e.g. after offline catch-up or a reset.
   void replace(GameState next) => state = next;
 
   // Developer menu helpers.
-  void devAddCash(BigNumber amount) => state = state.copyWith(
-    cash: state.cash + amount,
-    totalEarned: state.totalEarned + amount,
-  );
+  void devAddCash(BigNumber amount) => state = state.earn(amount);
 
-  void devReset() => state = GameState.initial(ref.read(economyConfigProvider));
+  void devReset() => state = ref
+      .read(questBoardProvider)
+      .ensure(GameState.initial(ref.read(economyConfigProvider)));
 
   bool _apply(GameState? next) {
     if (next == null) return false;

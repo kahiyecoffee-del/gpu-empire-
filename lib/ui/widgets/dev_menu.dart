@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/big_number.dart';
+import '../../game/events.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/save_service.dart';
@@ -55,6 +56,14 @@ class _DevMenu extends ConsumerWidget {
             leading: const Icon(Icons.attach_money),
             title: Text(l10n.devAddCash('\$1M')),
             onTap: () => game.devAddCash(_cashGift),
+          ),
+          ListTile(
+            leading: const Icon(Icons.local_fire_department),
+            title: Text(l10n.devSpawnEvent),
+            onTap: () {
+              ref.read(eventProvider.notifier).spawnNow();
+              Navigator.pop(context);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.trending_up),

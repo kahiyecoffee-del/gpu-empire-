@@ -76,7 +76,10 @@ void main() {
   group('config', () {
     test('sorts milestones and upgrades', () {
       expect(config.milestones.map((m) => m.level), [25, 50]);
-      expect(config.upgrades.map((u) => u.id), ['u_b', 'u_all']);
+      expect(config.locations.single.upgrades.map((u) => u.id), [
+        'u_b',
+        'u_all',
+      ]);
     });
 
     test('initial state uses start levels', () {

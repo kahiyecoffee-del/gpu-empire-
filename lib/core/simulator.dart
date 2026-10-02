@@ -26,7 +26,27 @@ class SimSettings {
   final double snapshotInterval;
 }
 
-enum SimEventKind { purchase, lineUnlocked, manager, upgrade, infra, quest }
+enum SimEventKind {
+  purchase,
+  lineUnlocked,
+  manager,
+  upgrade,
+  infra,
+  quest,
+  move,
+  ipo,
+  skill,
+  event,
+}
+
+/// Events that are not purchases (excluded from purchase gaps).
+const _nonPurchases = {
+  SimEventKind.quest,
+  SimEventKind.move,
+  SimEventKind.ipo,
+  SimEventKind.skill,
+  SimEventKind.event,
+};
 
 class SimEvent {
   const SimEvent(this.time, this.kind, this.label, this.cost);
@@ -72,7 +92,15 @@ class SimResult {
   final double duration;
 
   Iterable<double> get purchaseTimes =>
-      events.where((e) => e.kind != SimEventKind.quest).map((e) => e.time);
+      events.where((e) => !_nonPurchases.contains(e.kind)).map((e) => e.time);
+
+  /// Time of the first event of [kind] (with [label], if given), or null.
+  double? firstTime(SimEventKind kind, [String? label]) {
+    for (final e in events) {
+      if (e.kind == kind && (label == null || e.label == label)) return e.time;
+    }
+    return null;
+  }
 
   BigNumber get totalSpent =>
       events.fold(BigNumber.zero, (sum, e) => sum + e.cost);
@@ -148,13 +176,24 @@ class Simulator {
     this.engine, {
     this.settings = const SimSettings(),
     this.questBook,
+    this.ipoFactor,
   });
 
   final EconomyEngine engine;
   final SimSettings settings;
 
-  /// When given, the bot claims each side quest as soon as it is done.
+  /// When given, the bot claims each side quest (or contract) when done.
   final QuestBook? questBook;
+
+  /// When given, the bot goes public once the IPO would pay at least this
+  /// many times its current shares (and at least [_minIpoShares]).
+  final double? ipoFactor;
+
+  static const _minIpoShares = 20.0;
+
+  /// Bots spend at most this share of their shares on one skill, keeping
+  /// most of the income bonus.
+  static const _skillBudget = 0.25;
 
   SimResult run({required double seconds, GameState? start}) {
     var s = start ?? GameState.initial(engine.config);
@@ -166,6 +205,15 @@ class Simulator {
     var nextTap = 0.0;
     var nextDecision = 0.0;
     var nextSnapshot = 0.0;
+    final eventList = engine.config.events.list;
+    final eventEvery =
+        (engine.config.events.minInterval + engine.config.events.maxInterval) /
+        2;
+    var nextEvent = eventEvery;
+    var eventIndex = 0;
+    final board = questBook == null
+        ? null
+        : QuestBoard(questBook!, ContractBook(engine));
 
     while (t < seconds) {
       if (t >= nextSnapshot) {
@@ -177,16 +225,52 @@ class Simulator {
         nextTap += settings.tapInterval;
       }
       if (t >= nextDecision) {
-        final book = questBook;
-        if (book != null) {
+        if (board != null) {
+          s = board.ensure(s);
           while (true) {
-            final quest = book.current(s);
-            final claimed = book.claim(s);
-            if (quest == null || claimed == null) break;
+            final (quest, _) = board.active(s);
+            final claimed = board.claim(s);
+            if (claimed == null) break;
             s = claimed;
             events.add(
               SimEvent(t, SimEventKind.quest, quest.id, BigNumber.zero),
             );
+          }
+        }
+        if (engine.canMove(s)) {
+          s = engine.moveToNextLocation(s)!;
+          events.add(
+            SimEvent(
+              t,
+              SimEventKind.move,
+              engine.location(s).id,
+              BigNumber.zero,
+            ),
+          );
+        }
+        if (eventList.isNotEmpty && t >= nextEvent) {
+          // Cycle through events in proportion to their weights.
+          final pool = [
+            for (final e in eventList)
+              for (var w = 0; w < e.weight.round(); w++) e,
+          ];
+          final event = pool[eventIndex++ % pool.length];
+          s = engine.applyEvent(s, event);
+          events.add(SimEvent(t, SimEventKind.event, event.id, BigNumber.zero));
+          nextEvent += eventEvery;
+        }
+        final factor = ipoFactor;
+        if (factor != null) {
+          final preview = engine.sharesPreview(s);
+          final threshold = s.meta.shares
+              .scale(factor)
+              .max(BigNumber.from(_minIpoShares));
+          if (preview >= threshold) {
+            events.add(
+              SimEvent(t, SimEventKind.ipo, preview.toJson(), BigNumber.zero),
+            );
+            s = engine.ipo(s)!;
+            s = _buySkills(s, t, events);
           }
         }
         // Buy as long as the best option is affordable.
@@ -216,6 +300,23 @@ class Simulator {
       finalState: s,
       duration: t,
     );
+  }
+
+  GameState _buySkills(GameState s, double t, List<SimEvent> events) {
+    var state = s;
+    var bought = true;
+    while (bought) {
+      bought = false;
+      for (final skill in engine.config.skills) {
+        if (engine.canBuySkill(state, skill) &&
+            skill.cost <= state.meta.shares.scale(_skillBudget)) {
+          state = engine.buySkill(state, skill.id)!;
+          events.add(SimEvent(t, SimEventKind.skill, skill.id, BigNumber.zero));
+          bought = true;
+        }
+      }
+    }
+    return state;
   }
 
   SimSnapshot _snapshot(double t, GameState s) => SimSnapshot(
@@ -314,11 +415,11 @@ class Simulator {
   static const _maxInfraBundle = 10;
 
   Iterable<_Candidate> _candidates(GameState s) sync* {
-    final config = engine.config;
+    final loc = engine.location(s);
     for (var i = 0; i < s.lines.length; i++) {
       if (!engine.isAvailable(s, i)) continue;
       final level = s.lines[i].level;
-      final id = config.lines[i].id;
+      final id = loc.lines[i].id;
       final kind = level == 0
           ? SimEventKind.lineUnlocked
           : SimEventKind.purchase;
@@ -341,13 +442,13 @@ class Simulator {
         }
       }
     }
-    for (final m in config.managers) {
+    for (final m in loc.managers) {
       final result = engine.buyManager(s.copyWith(cash: m.cost), m.id);
       if (result != null) {
         yield _Candidate(m.id, SimEventKind.manager, m.cost, result);
       }
     }
-    for (final u in config.upgrades) {
+    for (final u in loc.upgrades) {
       final result = engine.buyUpgrade(s.copyWith(cash: u.cost), u.id);
       if (result != null) {
         yield _Candidate(u.id, SimEventKind.upgrade, u.cost, result);

@@ -11,3 +11,6 @@ Aşama kapsamı dışında kalan fikirler. Bir fikir aşamaya alınınca `GAME_B
 - Max'ten bağlamsal ipuçları: aşırı yükte "Soğutmayı yükselt!", uzun süre alım yapılmazsa "Yükseltmelere bak" gibi.
 - Günlük görevler (her gün 3 kısa görev), Max'in yeni lokasyonlarda farklı kıyafetleri.
 - Dokunma ve alım için ses efektleri (Aşama 4).
+- Lokasyonlar 4–6 (İzlanda Hiperölçek, Okyanus Altı, Yörünge): ekonomi üreticisine yeni satır eklemek yeterli; isimler, renk tonu ve hikaye görevleri gerekir.
+- Olaylar için "reklam izle, ödülü ×2" (Aşama 3).
+- IPO ekranında "şimdi IPO yaparsan geliri ne kadar hızlanır" önizlemesi (ör. "Garaj'ı 3 kat hızlı geçersin").

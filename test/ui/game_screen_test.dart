@@ -103,7 +103,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Claim'));
     await tester.pump();
-    expect(container.read(gameProvider).questIndex, 1);
+    expect(container.read(gameProvider).meta.storyIndex, 1);
   });
 
   testWidgets('music can be turned off in settings', (tester) async {

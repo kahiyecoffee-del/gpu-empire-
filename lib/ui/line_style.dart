@@ -54,4 +54,10 @@ class LineStyle {
   };
 
   static LineStyle of(String lineId) => _styles[lineId] ?? _fallback;
+
+  /// Lines share a color ladder by position in every location.
+  static LineStyle forIndex(int index) {
+    final styles = _styles.values.toList();
+    return index < styles.length ? styles[index] : _fallback;
+  }
 }

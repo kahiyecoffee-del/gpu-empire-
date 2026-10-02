@@ -2,6 +2,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../game/events.dart';
 import '../game/game_controller.dart';
 
 /// Drives the simulation from the frame clock.
@@ -36,6 +37,7 @@ class _GameLoopState extends ConsumerState<GameLoop>
     if (dt > _maxFrameSeconds) dt = _maxFrameSeconds;
     final scale = ref.read(devSettingsProvider).timeScale;
     ref.read(gameProvider.notifier).tick(dt * scale);
+    ref.read(eventProvider.notifier).advance(dt * scale);
   }
 
   @override

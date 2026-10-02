@@ -11,6 +11,9 @@ import 'theme.dart';
 import 'widgets/advisor_banner.dart';
 import 'widgets/chunky_button.dart';
 import 'widgets/dev_menu.dart';
+import 'widgets/event_bubble.dart';
+import 'widgets/investors_sheet.dart';
+import 'widgets/location_card.dart';
 import 'widgets/game_background.dart';
 import 'widgets/line_card.dart';
 import 'widgets/settings_sheet.dart';
@@ -95,22 +98,31 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     ref.listen(offlineReportProvider, (previous, next) {
       if (next != null && previous == null) _showOffline(next);
     });
-    final lineCount = ref.watch(engineProvider).config.lines.length;
+    final lineCount = ref.watch(gameProvider.select((s) => s.lines.length));
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GameBackground(
+        locationIndex: ref.watch(gameProvider.select((s) => s.locationIndex)),
         child: Column(
           children: [
             const _TopArea(),
             const _Toolbar(),
-            const AdvisorBanner(),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-                itemCount: lineCount + 1,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, i) =>
-                    i < lineCount ? LineCard(index: i) : const _BuildLabel(),
+              child: Stack(
+                children: [
+                  ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                    itemCount: lineCount + 3,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, i) {
+                      if (i == 0) return const AdvisorBanner();
+                      if (i == 1) return const LocationCard();
+                      if (i - 2 < lineCount) return LineCard(index: i - 2);
+                      return const _BuildLabel();
+                    },
+                  ),
+                  const Positioned(right: 12, bottom: 16, child: EventBubble()),
+                ],
               ),
             ),
           ],
@@ -242,6 +254,35 @@ class _Toolbar extends ConsumerWidget {
           ),
           const Spacer(),
           Flexible(
+            flex: 3,
+            child: Badge(
+              isLabelVisible: ref.watch(ipoReadyProvider),
+              label: const Icon(Icons.priority_high, size: 10),
+              backgroundColor: AppColors.warning,
+              child: ChunkyButton(
+                color: const Color(0xFF4DA3FF),
+                foreground: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                onPressed: () => showInvestorsSheet(context),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.account_balance, size: 18),
+                      const SizedBox(width: 4),
+                      Text(l10n.ipoShort),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
             flex: 4,
             child: Badge(
               isLabelVisible: affordable > 0,
@@ -250,6 +291,10 @@ class _Toolbar extends ConsumerWidget {
               child: ChunkyButton(
                 color: const Color(0xFFB65CFF),
                 foreground: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 onPressed: () => showUpgradesSheet(context),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,

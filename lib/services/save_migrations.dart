@@ -1,5 +1,5 @@
 /// Version written by the current build.
-const currentSaveVersion = 2;
+const currentSaveVersion = 3;
 
 typedef SaveMigration = Map<String, Object?> Function(Map<String, Object?>);
 
@@ -13,6 +13,30 @@ final Map<int, SaveMigration> migrations = {
         Map<String, Object?>.of(save['state']! as Map<String, Object?>)
           ..putIfAbsent('questIndex', () => 0)
           ..putIfAbsent('manualJobs', () => 0);
+    return {...save, 'state': state};
+  },
+  // v3: locations, IPO meta progress, contracts and boosts.
+  2: (save) {
+    final state = Map<String, Object?>.of(
+      save['state']! as Map<String, Object?>,
+    );
+    final earned = state['totalEarned'] ?? '0.0e0';
+    final storyIndex = state.remove('questIndex') ?? 0;
+    state
+      ..putIfAbsent('locationIndex', () => 0)
+      ..putIfAbsent('locationEarned', () => earned)
+      ..putIfAbsent('contractIndex', () => 0)
+      ..putIfAbsent('boost', () => null)
+      ..putIfAbsent(
+        'meta',
+        () => {
+          'shares': '0.0e0',
+          'skills': <String>[],
+          'ipoCount': 0,
+          'storyIndex': storyIndex,
+          'lifetimeEarned': earned,
+        },
+      );
     return {...save, 'state': state};
   },
 };

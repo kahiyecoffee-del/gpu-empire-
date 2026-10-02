@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/big_number.dart';
 import '../../core/number_format.dart';
+import '../../core/economy_engine.dart';
 import '../../core/quests.dart';
 import '../../game/game_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../names.dart';
 import '../quest_texts.dart';
 import '../theme.dart';
 import 'chunky_button.dart';
@@ -32,12 +34,15 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
 
   void _claim() {
     final game = ref.read(gameProvider.notifier);
-    final quest = ref.read(questBookProvider).current(ref.read(gameProvider));
+    final (quest, isContract) = ref
+        .read(questBoardProvider)
+        .active(ref.read(gameProvider));
     final reward = game.claimQuest();
-    if (quest == null || reward == null) return;
+    if (reward == null) return;
     final l10n = AppLocalizations.of(context);
     _thanksTimer?.cancel();
-    setState(() => _thanks = (questDone(l10n, quest.id), reward));
+    final line = isContract ? l10n.contractDone : questDone(l10n, quest.id);
+    setState(() => _thanks = (line, reward));
     _thanksTimer = Timer(_thanksDuration, () {
       if (mounted) setState(() => _thanks = null);
     });
@@ -53,14 +58,15 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(gameProvider);
-    final book = ref.watch(questBookProvider);
-    final quest = book.current(state);
-    final progress = quest == null ? null : book.progress(state, quest);
-    final complete = progress?.isComplete ?? false;
+    final board = ref.watch(questBoardProvider);
+    final engine = ref.watch(engineProvider);
+    final (quest, isContract) = board.active(state);
+    final progress = board.progress(state, quest);
+    final complete = progress.isComplete;
     final thanks = _thanks;
 
     final String speech;
-    Widget? footer;
+    final Widget footer;
     if (thanks != null) {
       speech = thanks.$1;
       footer = Text(
@@ -70,56 +76,65 @@ class _AdvisorBannerState extends ConsumerState<AdvisorBanner> {
           fontWeight: FontWeight.w700,
         ),
       );
-    } else if (quest == null) {
-      speech = l10n.allQuestsDone;
     } else {
-      speech = questAsk(l10n, quest.id);
+      speech = isContract
+          ? _contractText(l10n, engine, quest)
+          : questAsk(l10n, quest.id);
       footer = _QuestFooter(
         quest: quest,
-        progress: progress!,
-        reward: book.reward(state, quest),
+        progress: progress,
+        reward: board.reward(state, quest),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-      child: GlassCard(
-        padding: const EdgeInsets.all(10),
-        tint: AppColors.accentAlt,
-        highlight: complete && thanks == null ? AppColors.accent : null,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MaxAvatar(excited: complete && thanks == null),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${l10n.advisorName} · ${l10n.advisorRole}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentAlt,
-                    ),
+    return GlassCard(
+      padding: const EdgeInsets.all(10),
+      tint: AppColors.accentAlt,
+      highlight: complete && thanks == null ? AppColors.accent : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MaxAvatar(excited: complete && thanks == null),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${l10n.advisorName} · ${l10n.advisorRole}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accentAlt,
                   ),
-                  const SizedBox(height: 2),
-                  _Typewriter(text: speech),
-                  if (footer != null) ...[const SizedBox(height: 6), footer],
-                ],
-              ),
+                ),
+                const SizedBox(height: 2),
+                _Typewriter(text: speech),
+                const SizedBox(height: 6),
+                footer,
+              ],
             ),
-            if (complete && thanks == null) ...[
-              const SizedBox(width: 8),
-              ChunkyButton(onPressed: _claim, child: Text(l10n.questClaim)),
-            ],
+          ),
+          if (complete && thanks == null) ...[
+            const SizedBox(width: 8),
+            ChunkyButton(onPressed: _claim, child: Text(l10n.questClaim)),
           ],
-        ),
+        ],
       ),
     );
   }
 }
+
+String _contractText(
+  AppLocalizations l10n,
+  EconomyEngine engine,
+  QuestConfig contract,
+) => contract.type == QuestType.lineLevel
+    ? l10n.contractLevel(
+        lineName(l10n, contract.target!),
+        '${contract.amount.toInt()}',
+      )
+    : l10n.contractEarn('\$${formatDouble(contract.amount)}');
 
 class _QuestFooter extends StatelessWidget {
   const _QuestFooter({
@@ -132,7 +147,13 @@ class _QuestFooter extends StatelessWidget {
   final QuestProgress progress;
   final BigNumber reward;
 
-  String _value(double v) => quest.type == QuestType.totalEarned
+  String _value(double v) => quest.type == QuestType.reachLocation
+      ? '${(v * 100).floor()}%'
+      : _amount(v);
+
+  String _amount(double v) =>
+      quest.type == QuestType.totalEarned ||
+          quest.type == QuestType.locationEarned
       ? '\$${formatDouble(v)}'
       : formatDouble(v.floorToDouble());
 
@@ -161,10 +182,12 @@ class _QuestFooter extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: l10n.questProgress(
-                      _value(progress.current.clamp(0, progress.goal)),
-                      _value(progress.goal),
-                    ),
+                    text: quest.type == QuestType.reachLocation
+                        ? _value(progress.current)
+                        : l10n.questProgress(
+                            _value(progress.current.clamp(0, progress.goal)),
+                            _value(progress.goal),
+                          ),
                   ),
                   const TextSpan(text: '  '),
                   TextSpan(

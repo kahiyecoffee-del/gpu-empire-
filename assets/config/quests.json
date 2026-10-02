@@ -21,8 +21,13 @@
     { "id": "q19", "type": "totalEarned", "amount": 1000000000, "rewardFraction": 0.03, "minReward": 0 },
     { "id": "q20", "type": "lineLevel", "target": "tpu_pod", "amount": 60, "rewardFraction": 0.03, "minReward": 0 },
     { "id": "q21", "type": "allLinesLevel", "amount": 30, "rewardFraction": 0.03, "minReward": 0 },
-    { "id": "q22", "type": "totalEarned", "amount": 10000000000, "rewardFraction": 0.03, "minReward": 0 },
-    { "id": "q23", "type": "allLinesLevel", "amount": 50, "rewardFraction": 0.03, "minReward": 0 },
-    { "id": "q24", "type": "lineLevel", "target": "quantum", "amount": 100, "rewardFraction": 0.03, "minReward": 0 }
+    { "id": "q22", "type": "reachLocation", "target": "warehouse", "amount": 1, "rewardFraction": 0, "minReward": 1000000 },
+    { "id": "q23", "type": "lineLevel", "target": "wh_inference_farm", "amount": 25, "rewardFraction": 0.03, "minReward": 0 },
+    { "id": "q24", "type": "ipoCount", "amount": 1, "rewardFraction": 0, "minReward": 2000 },
+    { "id": "q25", "type": "skills", "amount": 1, "rewardFraction": 0, "minReward": 1000 },
+    { "id": "q26", "type": "reachLocation", "target": "campus", "amount": 1, "rewardFraction": 0, "minReward": 1000000000 },
+    { "id": "q27", "type": "lineLevel", "target": "cp_model_foundry", "amount": 50, "rewardFraction": 0.03, "minReward": 0 },
+    { "id": "q28", "type": "ipoCount", "amount": 3, "rewardFraction": 0, "minReward": 5000 },
+    { "id": "q29", "type": "skills", "amount": 5, "rewardFraction": 0, "minReward": 5000 }
   ]
 }
